@@ -1,18 +1,25 @@
 import { useEffect, useRef } from "react";
 import { formatLocale, parse, Spec, timeFormatLocale, View, Warn } from "vega";
-import {
-  d3FormatLocales,
-  d3TimeFormatLocales,
-  Locales
-} from "../locales/locales";
+import { d3FormatLocales, d3TimeFormatLocales } from "../locales/locales";
 import { useLocale } from "./use-locale";
 
 /**
  * Creates a Vega view with the correct locale.
  */
-export const useVegaView = ({ spec }: { spec: Spec }) => {
+export const useVegaView = ({
+  spec,
+  renderer = "svg",
+  onViewCreated
+}: {
+  /**
+   * Optional callback returning the view, this allows handling external events.
+   */
+  onViewCreated?: (x: View) => void;
+  spec: Spec;
+  renderer?: "svg" | "canvas";
+}) => {
   const ref = useRef<HTMLDivElement>(null);
-  const locale = useLocale() as Locales; // FIXME: no type casting
+  const locale = useLocale();
 
   useEffect(() => {
     // Unfortunately there's no other way than to globally mutate Vega's locales
@@ -23,12 +30,15 @@ export const useVegaView = ({ spec }: { spec: Spec }) => {
       try {
         const view = new View(parse(spec), {
           logLevel: Warn,
-          renderer: "svg",
+          renderer: renderer,
           container: ref.current,
           hover: true
         });
 
+        onViewCreated && onViewCreated(view);
+
         await view.runAsync();
+
         // console.table("vegadata", view.data("table"));
       } catch (error) {
         console.log(error);
@@ -36,7 +46,7 @@ export const useVegaView = ({ spec }: { spec: Spec }) => {
     };
     createView();
     // return clean-up function
-  }, [spec, locale]);
+  }, [spec, locale, renderer, onViewCreated]);
 
   return [ref] as const;
 };
