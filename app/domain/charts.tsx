@@ -31,11 +31,17 @@ export interface ScatterPlotFields {
   labelField: string;
 }
 
+export interface CHMapFields {
+  municipality: string;
+  total: string;
+}
+
 export type Fields =
   | BarChartFields
   | LineChartFields
   | AreaChartFields
-  | ScatterPlotFields;
+  | ScatterPlotFields
+  | CHMapFields;
 
 export const getInitialFilters = (dimensions: DimensionWithMeta[]): Filters => {
   const nonTimeDimensions = dimensions.filter(
