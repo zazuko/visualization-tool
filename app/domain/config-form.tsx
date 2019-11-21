@@ -10,7 +10,11 @@ import { Locales } from "../locales/locales";
 //   name: HTMLInputElement["name"]
 //   onChange: [];
 // }
-export type Option = { value: string | $FixMe; label: string | $FixMe };
+export type Option = {
+  value: string | $FixMe;
+  label: string | $FixMe;
+  disabled?: boolean;
+};
 
 export type FieldProps = Pick<
   InputHTMLAttributes<HTMLInputElement>,
