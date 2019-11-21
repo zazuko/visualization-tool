@@ -231,6 +231,88 @@ export const useObservations = <FieldsType extends Fields>({
     fetchData
   );
 };
+export const useRawObservations = <FieldsType extends Fields>({
+  dataSet,
+  dimensions,
+  measures,
+  fields,
+  filters
+}: {
+  dataSet: DataCube;
+  dimensions: DimensionWithMeta[];
+  measures: MeasureWithMeta[];
+  fields: FieldsType;
+  filters?: Filters;
+}): RDState<RawObservations<FieldsType>> => {
+  const fetchData = useCallback(async () => {
+    const componentsByIri = [...measures, ...dimensions].reduce<
+      Record<string, DimensionWithMeta | MeasureWithMeta>
+    >((comps, c) => {
+      comps[c.component.iri.value] = c;
+      return comps;
+    }, {});
+
+    const dimensionsByIri = dimensions.reduce<
+      Record<string, DimensionWithMeta>
+    >((comps, c) => {
+      comps[c.component.iri.value] = c;
+      return comps;
+    }, {});
+
+    const constructedFilters = filters
+      ? Object.entries(filters).flatMap(([dimIri, filter]) => {
+          const selectedValues =
+            filter.type === "single"
+              ? [filter.value]
+              : filter.type === "multi"
+              ? Object.entries(filter.values).flatMap(([value, selected]) =>
+                  selected ? [value] : []
+                )
+              : [];
+
+          const dimension = dimensionsByIri[dimIri];
+
+          if (!dimension) {
+            return [];
+          }
+
+          const dataType = getDataTypeFromDimensionValues(dimension);
+
+          const toTypedValue = (value: string) => {
+            return dataType ? literal(value, dataType) : value;
+          };
+
+          return selectedValues.length === 1
+            ? [dimension.component.equals(toTypedValue(selectedValues[0]))]
+            : selectedValues.length > 0
+            ? [dimension.component.in(selectedValues.map(toTypedValue))]
+            : [];
+        })
+      : [];
+
+    // TODO: Maybe explicitly specify all dimension fields? Currently not necessary because they're selected anyway.
+    const selectedComponents = Object.entries(fields).flatMap(([key, iri]) =>
+      componentsByIri[iri] !== undefined
+        ? [[key, componentsByIri[iri].component]]
+        : []
+    );
+
+    const query = dataSet
+      .query()
+      .limit(null)
+      .select(selectedComponents)
+      .filter(constructedFilters);
+
+    // WARNING! Potentially dangrous/wrong typecast because query.execute() returns Promise<any[]>
+    const data: RawObservations<FieldsType> = await query.execute();
+    return data;
+  }, [filters, dataSet, fields, measures, dimensions]);
+
+  return useRemoteData<RawObservations<FieldsType>>(
+    ["observations", filters, dataSet, fields, measures, dimensions],
+    fetchData
+  );
+};
 
 export const useDimensionValues = ({
   dataSet,
