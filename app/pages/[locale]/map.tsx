@@ -7,18 +7,33 @@ import {
   useDataSetAndMetadata,
   DataCubeProvider,
   DataSetMetadata,
-  useRawObservations
+  useRawObservations,
+  MeasureWithMeta
 } from "../../domain";
 import { Loading } from "../../components/hint";
 import { Select } from "../../components/form";
+import { Box, Flex } from "rebass";
+
+const DEFAULT_CATEGORY = "http://elcom.zazuko.com/category/H4";
+const DEFAULT_MEASURE = "http://elcom.zazuko.com/attribute/total";
+const FIELDS = {
+  municipality: "http://elcom.zazuko.com/attribute/municipality",
+  total: "http://elcom.zazuko.com/attribute/total",
+  kev: "http://elcom.zazuko.com/attribute/kev",
+  gridusage: "http://elcom.zazuko.com/attribute/gridusage",
+  energy: "http://elcom.zazuko.com/attribute/energy",
+  fee: "http://elcom.zazuko.com/attribute/fee"
+};
+
+function getKeyByValue(object: Record<string, {}>, value: string) {
+  return Object.keys(object).find(key => object[key] === value);
+}
 
 const shapesCtx = require.context(
   "../../public/static/shapes/out",
   true,
   /\d{4}\/.*\.json$/
 );
-
-const DEFAULT_CATEGORY = "http://elcom.zazuko.com/category/H4";
 
 const shapes = new Map<string, TopoJSON.Topology>();
 
@@ -27,40 +42,52 @@ shapesCtx.keys().forEach(k => {
 });
 
 interface Municipality {
+  pinned: boolean;
   id: number;
   observed: {
+    count: number; // Aggregated from n suppliers
     label?: string;
     total: string;
     kev: string;
     gridusage: string;
     energy: string;
     fee: string;
-    total2: {
-      label: string;
-      value: string;
-    };
   };
+}
+
+interface MeasureDatum {
+  iri: string;
+  label: string;
+  min: number;
+  max: number;
+  lookup: string;
 }
 
 const Page = () => {
   const availableYears = ["2014", "2015", "2016", "2017", "2018", "2019"];
+  const rd = useDataSetAndMetadata(
+    "http://elcom.zazuko.com/dataset/municipality/electricityTariffs"
+  );
   // Array.from(shapes.keys())
   //   .map(d => d.match(/\d+/g))
   //   .flat()
   //   .filter((x, i, a) => a.indexOf(x) === i);
 
+  //#region STATE
   const [year, setYear] = React.useState<string>(
     availableYears[availableYears.length - 1] || "2019"
   );
   const [category, setCategory] = React.useState<string>(DEFAULT_CATEGORY);
-
+  const [measure, setMeasure] = React.useState<MeasureDatum | undefined>(
+    undefined
+  );
   const [municipality, setMunicipality] = React.useState<
     undefined | Municipality
   >(undefined);
 
-  const rd = useDataSetAndMetadata(
-    "http://elcom.zazuko.com/dataset/municipality/electricityTariffs"
-  );
+  const updateMunicipality = (m: Municipality, pinned: boolean) => {
+    setMunicipality({ ...m, pinned });
+  };
 
   const updateYear = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -70,10 +97,35 @@ const Page = () => {
   const updateCategory = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    console.log(e.currentTarget.value);
     setCategory(e.currentTarget.value);
   };
 
+  const updateMeasure = (m: MeasureWithMeta | undefined) => {
+    const lookupKey = m && getKeyByValue(FIELDS, m.component.iri.value);
+    if (m && m.max && m.min && lookupKey) {
+      setMeasure({
+        iri: m.component.iri.value,
+        label: m.component.labels[0].value,
+        min: +m.min.value,
+        max: +m.max.value,
+        lookup: lookupKey
+      });
+    } else {
+      console.warn(`Could not apply filter for ${m}`);
+    }
+  };
+
+  React.useEffect(() => {
+    if (measure === undefined && rd.state === "loaded") {
+      const match = rd.data.measures.find(
+        d => d.component.iri.value === DEFAULT_MEASURE
+      );
+      updateMeasure(match);
+    }
+  }, [measure, rd]);
+
+  //#endregion
+  //#region SPEC
   const spec: Spec = React.useMemo(() => {
     const lakes = shapes.get(`./${year}/ch-lakes.json`);
     const cantons = shapes.get(`./${year}/ch-cantons.json`);
@@ -100,7 +152,16 @@ const Page = () => {
       data: [
         {
           name: "metrics",
-          values: []
+          values: [],
+          transform: [
+            {
+              type: "aggregate",
+              fields: ["iri", "total", "kev", "gridusage", "energy", "fee"],
+              ops: ["count", "mean", "mean", "mean", "mean", "mean"],
+              as: ["count", "total", "kev", "gridusage", "energy", "fee"],
+              groupby: ["iri", "label", "count"]
+            }
+          ]
         },
         {
           name: "cantons",
@@ -130,7 +191,14 @@ const Page = () => {
               key: "iri",
               fields: ["iri"],
               as: ["observed"],
-              default: { total: undefined, label: "" }
+              default: {
+                label: "",
+                total: undefined,
+                kev: undefined,
+                gridusage: undefined,
+                energy: undefined,
+                fee: undefined
+              }
             }
           ]
         },
@@ -147,7 +215,7 @@ const Page = () => {
         {
           name: "color",
           type: "quantize",
-          domain: [0, 70],
+          domain: measure ? [measure.min, measure.max] : [0, 0],
           range: { scheme: "yelloworangered", count: 5 }
         }
       ],
@@ -163,17 +231,15 @@ const Page = () => {
               fill: { value: "#CCCCCC" }
             },
             update: {
-              fill: {
-                signal:
-                  "isValid(datum.observed.total) ? scale('color', datum.observed.total) : '#EFEFEF'"
-              }
+              fill: measure
+                ? {
+                    signal: `isValid(datum.observed['${measure.lookup}']) ? scale('color', datum.observed['${measure.lookup}']) : '#EFEFEF'`
+                  }
+                : { value: "#EFEFEF" }
             },
             hover: {
               fill: { value: "#fff" }
             }
-            // tooltip: {
-            //   signal: "datum"
-            // }
           },
           transform: [{ type: "geoshape", projection: "projection" }]
         },
@@ -206,26 +272,44 @@ const Page = () => {
         {
           fill: "color",
           orient: "top-left",
-          title: "Total exkl. MWST"
+          title: measure ? measure.label : ""
         }
       ]
     };
-  }, [year]);
+  }, [measure, year]);
+  //#endregion
 
   return (
     <AppLayout>
-      <Center>
-        <div style={{}}>
-          <div
-            style={{
-              position: "absolute",
-              top: 100,
-              width: 400,
-              padding: 10,
-              background: "#f5f5f5"
-            }}
-          >
-            {rd.state === "loaded" ? (
+      <Box
+        bg="muted"
+        sx={{
+          display: "grid",
+          gridTemplateColumns: "minmax(12rem, 20rem) minmax(22rem, 1fr)",
+          gridTemplateRows: "minmax(0, 1fr)",
+          gridTemplateAreas: `
+        "left right"
+        `,
+          width: "100%",
+          position: "fixed",
+          // FIXME replace 96px with actual header size
+          top: "96px",
+          height: "calc(100vh - 96px)"
+        }}
+      >
+        <Box
+          as="section"
+          data-name="panel-left"
+          variant="container.left"
+          sx={{ height: "100%", display: "block" }}
+        >
+          {rd.state === "loaded" ? (
+            <Flex
+              flexDirection="column"
+              padding={2}
+              justifyContent="space-between"
+              height="100%"
+            >
               <div>
                 <h1>{rd.data.dataSet.labels[0].value} </h1>
                 {rd.data.dimensions
@@ -237,25 +321,24 @@ const Page = () => {
                       d.component.iri.value !==
                       "http://elcom.zazuko.com/attribute/provider"
                   )
-                  .map(d => {
+                  .map((d, index) => {
                     const isCategoryDimension =
                       d.component.iri.value ===
                       "http://elcom.zazuko.com/attribute/category";
                     const isYearDimension =
                       d.component.iri.value ===
                       "http://elcom.zazuko.com/attribute/year";
-                    const title = d.component.labels[0].value;
-                    return (
-                      <div key={title}>
-                        <b>{title}</b>
-                        <br />
 
+                    const label = d.component.labels[0].value;
+                    return (
+                      <div key={label + index}>
                         <Select
+                          label={label}
                           value={
-                            availableYears
-                              ? year
-                              : isCategoryDimension
+                            isCategoryDimension
                               ? category
+                              : isYearDimension
+                              ? year
                               : undefined
                           }
                           onChange={e => {
@@ -266,28 +349,35 @@ const Page = () => {
                             label: v.label.value || v.value.value,
                             value: v.value.value || v.label.value,
                             disabled: isYearDimension
-                              ? !availableYears.includes(
-                                  v.value.value || v.label.value //@FIXME check whats what for years
-                                )
+                              ? !availableYears.includes(v.value.value)
                               : false
                           }))}
                         />
                       </div>
                     );
                   })}
-                <br />
-                Measures:
-                {rd.data.measures.map(d => (
-                  <div key={d.component.labels[0].value}>
-                    {d.component.labels[0].value}
-                  </div>
-                ))}
-                <hr />
-                {category}
+
+                <Select
+                  value={measure && measure.iri}
+                  onChange={e => {
+                    const match = rd.data.measures.find(
+                      d => d.component.iri.value === e.currentTarget.value
+                    );
+                    updateMeasure(match);
+                  }}
+                  options={rd.data.measures.map(d => ({
+                    label: d.component.labels[0].value,
+                    value: d.component.iri.value
+                  }))}
+                />
+              </div>
+              <Flex>
                 {municipality && (
                   <div>
                     <h3>
-                      {municipality.observed.label} (Nr.{municipality.id})
+                      {municipality.observed.label}
+                      {municipality.observed.count > 1 && "*"} (Nr.
+                      {municipality.id})
                     </h3>
                     <dl>
                       <dt>total</dt>
@@ -301,38 +391,39 @@ const Page = () => {
                       <dt>fee</dt>
                       <dd>{municipality.observed.fee}</dd>
                     </dl>
+                    {municipality.observed.count > 1 && (
+                      <small>
+                        (* aggregation of {municipality.observed.count} vendors)
+                      </small>
+                    )}
                   </div>
                 )}
-              </div>
-            ) : (
-              <Loading />
-            )}
-          </div>
-        </div>
-        <hr />
-        {rd.state === "loaded" ? (
-          <MapComponent
-            year={year}
-            setMunicipality={setMunicipality}
-            dataset={rd.data}
-            spec={spec}
-            category={category}
-          />
-        ) : (
-          <MapStatic spec={spec} />
-        )}
-      </Center>
+              </Flex>
+            </Flex>
+          ) : (
+            <Loading />
+          )}
+        </Box>
+
+        <Center>
+          {rd.state === "loaded" ? (
+            <MapComponent
+              year={year}
+              setMunicipality={updateMunicipality}
+              dataset={rd.data}
+              spec={spec}
+              category={category}
+            />
+          ) : (
+            <MapStatic spec={spec} />
+          )}
+        </Center>
+      </Box>
+
+      <div style={{}}></div>
+      <hr />
     </AppLayout>
   );
-};
-
-const FIELDS = {
-  municipality: "http://elcom.zazuko.com/attribute/municipality",
-  total: "http://elcom.zazuko.com/attribute/total",
-  kev: "http://elcom.zazuko.com/attribute/kev",
-  gridusage: "http://elcom.zazuko.com/attribute/gridusage",
-  energy: "http://elcom.zazuko.com/attribute/energy",
-  fee: "http://elcom.zazuko.com/attribute/fee"
 };
 
 const MapComponent = ({
@@ -345,9 +436,7 @@ const MapComponent = ({
   year: string;
   category: string;
   spec: Spec;
-  setMunicipality: React.Dispatch<
-    React.SetStateAction<undefined | Municipality>
-  >;
+  setMunicipality: (m: Municipality, pinned: boolean) => void;
   dataset: DataSetMetadata;
 }) => {
   const filters = React.useMemo(() => {
@@ -373,7 +462,6 @@ const MapComponent = ({
 
   const observationReady = observations.state === "loaded";
   const obsData = observations.data;
-  observationReady && console.log(obsData);
   const onViewCreated = React.useCallback(
     (view: View) => {
       view.addEventListener("click", function(event, item) {
@@ -382,7 +470,7 @@ const MapComponent = ({
         console.table(item.datum.observed);
         switch (name) {
           case "municipality":
-            setMunicipality(item.datum);
+            setMunicipality(item.datum, true);
         }
       });
       if (observationReady && obsData) {
@@ -396,12 +484,14 @@ const MapComponent = ({
           fee: d.fee.value.value
         }));
 
-        console.log("formatted.length", formatted.length);
-        // const changeSet = changeset()
-        //   .remove(truthy)
-        //   .insert(formatted);
-        // view.change("metrics", changeSet).runAsync();
-        view.data("metrics", formatted).runAsync();
+        view
+          .data("metrics", formatted)
+          .runAsync()
+          .then(() => {
+            console.info(
+              `Vega data insert complete. Added ${formatted.length} entries.`
+            );
+          });
       }
     },
     [observationReady, obsData, setMunicipality]
@@ -411,9 +501,14 @@ const MapComponent = ({
     renderer: "canvas",
     onViewCreated
   });
+
   return (
     <div
-      style={{ opacity: observationReady ? 1 : 0.5, transition: ".4s opacity" }}
+      style={{
+        opacity: observationReady ? 1 : 0.5,
+        transition: ".4s opacity",
+        overflow: "hidden"
+      }}
       ref={ref}
     />
   );
@@ -424,7 +519,7 @@ const MapStatic = ({ spec }: { spec: Spec }) => {
     spec,
     renderer: "canvas"
   });
-  return <div style={{ opacity: 0.5 }} ref={ref} />;
+  return <div style={{ opacity: 0.5, overflow: "hidden" }} ref={ref} />;
 };
 
 export default () => (
