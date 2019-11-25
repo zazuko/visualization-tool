@@ -13,6 +13,7 @@ import {
 import { Loading } from "../../components/hint";
 import { Select } from "../../components/form";
 import { Box, Flex } from "rebass";
+import { useResizeObserver } from "../../lib/use-resize-observer";
 
 const DEFAULT_CATEGORY = "http://elcom.zazuko.com/category/H4";
 const DEFAULT_MEASURE = "http://elcom.zazuko.com/attribute/total";
@@ -41,18 +42,19 @@ shapesCtx.keys().forEach(k => {
   shapes.set(k, shapesCtx(k));
 });
 
+interface MunicipalityDatum {
+  count: number; // Aggregated from n suppliers
+  iri: string;
+  label?: string;
+  total: string;
+  kev: string;
+  gridusage: string;
+  energy: string;
+  fee: string;
+}
 interface Municipality {
-  pinned: boolean;
-  id: number;
-  observed: {
-    count: number; // Aggregated from n suppliers
-    label?: string;
-    total: string;
-    kev: string;
-    gridusage: string;
-    energy: string;
-    fee: string;
-  };
+  id: string;
+  observed: MunicipalityDatum;
 }
 
 interface MeasureDatum {
@@ -85,20 +87,36 @@ const Page = () => {
     undefined | Municipality
   >(undefined);
 
-  const updateMunicipality = (m: Municipality, pinned: boolean) => {
-    setMunicipality({ ...m, pinned });
-  };
+  const [municipalities, setMunicipalities] = React.useState<
+    Map<string, MunicipalityDatum>
+  >(new Map());
 
-  const updateYear = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setYear(e.currentTarget.value);
-  };
-  const updateCategory = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    setCategory(e.currentTarget.value);
-  };
+  const updateMunicipality = React.useCallback((m: Municipality) => {
+    setMunicipality(m);
+  }, []);
+
+  const updateYear = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      setYear(e.currentTarget.value);
+    },
+    []
+  );
+
+  const updateCategory = React.useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      setCategory(e.currentTarget.value);
+    },
+    []
+  );
+
+  const updateMunicipalities = React.useCallback(
+    (m: Map<string, MunicipalityDatum>) => {
+      setMunicipalities(m);
+    },
+    []
+  );
+
+  const [resizeRef, width, height] = useResizeObserver();
 
   const updateMeasure = (m: MeasureWithMeta | undefined) => {
     const lookupKey = m && getKeyByValue(FIELDS, m.component.iri.value);
@@ -133,11 +151,10 @@ const Page = () => {
 
     return {
       $schema: "https://vega.github.io/schema/vega/v5.json",
-      width: 900,
-      height: 600,
+      width: Math.min(900, width),
+      height: height,
+      autosize: "fit-x",
       padding: 25,
-
-      autosize: "pad",
       projections: [
         {
           name: "projection",
@@ -148,7 +165,12 @@ const Page = () => {
           }
         }
       ],
-      signals: [],
+      signals: [
+        {
+          name: "highlight",
+          value: { iri: "" }
+        }
+      ],
       data: [
         {
           name: "metrics",
@@ -233,12 +255,14 @@ const Page = () => {
             update: {
               fill: measure
                 ? {
-                    signal: `isValid(datum.observed['${measure.lookup}']) ? scale('color', datum.observed['${measure.lookup}']) : '#EFEFEF'`
+                    signal: `highlight.iri === datum.observed.iri ? "#008F85": isValid(datum.observed['${measure.lookup}']) ? scale('color', datum.observed['${measure.lookup}']) : '#EFEFEF'`
                   }
                 : { value: "#EFEFEF" }
             },
             hover: {
-              fill: { value: "#fff" }
+              fill: {
+                signal: `highlight.iri === datum.observed.iri ? '#008F85' : '#6ECD9C'`
+              }
             }
           },
           transform: [{ type: "geoshape", projection: "projection" }]
@@ -276,7 +300,7 @@ const Page = () => {
         }
       ]
     };
-  }, [measure, year]);
+  }, [height, measure, width, year]);
   //#endregion
 
   return (
@@ -328,6 +352,9 @@ const Page = () => {
                     const isYearDimension =
                       d.component.iri.value ===
                       "http://elcom.zazuko.com/attribute/year";
+                    const isMunicipalityDimension =
+                      d.component.iri.value ===
+                      "http://elcom.zazuko.com/attribute/municipality";
 
                     const label = d.component.labels[0].value;
                     return (
@@ -339,19 +366,57 @@ const Page = () => {
                               ? category
                               : isYearDimension
                               ? year
+                              : isMunicipalityDimension
+                              ? municipality && municipality.id
                               : undefined
                           }
                           onChange={e => {
-                            isYearDimension && updateYear(e);
-                            isCategoryDimension && updateCategory(e);
+                            if (isYearDimension) {
+                              updateYear(e);
+                            } else if (isCategoryDimension) {
+                              updateCategory(e);
+                            } else if (isMunicipalityDimension) {
+                              const match = municipalities.get(
+                                e.currentTarget.value
+                              );
+
+                              match &&
+                                updateMunicipality({
+                                  id: match.iri,
+                                  observed: match
+                                });
+                            }
                           }}
-                          options={d.values.map(v => ({
-                            label: v.label.value || v.value.value,
-                            value: v.value.value || v.label.value,
-                            disabled: isYearDimension
-                              ? !availableYears.includes(v.value.value)
-                              : false
-                          }))}
+                          options={[
+                            {
+                              label: d.component.labels[0].value || "...",
+                              value: ""
+                            },
+                            ...d.values
+                              .sort((a, b) => {
+                                if (!isMunicipalityDimension) {
+                                  return 0;
+                                }
+                                if (a.label.value < b.label.value) {
+                                  return -1;
+                                }
+                                if (a.label.value > b.label.value) {
+                                  return 1;
+                                }
+                                return 0;
+                              })
+                              .map(v => ({
+                                label: v.label.value || v.value.value,
+                                value: v.value.value || v.label.value,
+                                disabled: isYearDimension
+                                  ? !availableYears.includes(v.value.value)
+                                  : isMunicipalityDimension
+                                  ? !municipalities.has(
+                                      v.value.value || v.label.value
+                                    )
+                                  : false
+                              }))
+                          ]}
                         />
                       </div>
                     );
@@ -376,8 +441,7 @@ const Page = () => {
                   <div>
                     <h3>
                       {municipality.observed.label}
-                      {municipality.observed.count > 1 && "*"} (Nr.
-                      {municipality.id})
+                      {municipality.observed.count > 1 && "*"}
                     </h3>
                     <dl>
                       <dt>total</dt>
@@ -405,19 +469,28 @@ const Page = () => {
           )}
         </Box>
 
-        <Center>
-          {rd.state === "loaded" ? (
-            <MapComponent
-              year={year}
-              setMunicipality={updateMunicipality}
-              dataset={rd.data}
-              spec={spec}
-              category={category}
-            />
-          ) : (
-            <MapStatic spec={spec} />
-          )}
-        </Center>
+        <div ref={resizeRef} style={{ width: "100%", height: "100%" }}>
+          <Center>
+            {width && (
+              <React.Fragment>
+                {rd.state === "loaded" ? (
+                  <MapComponent
+                    year={year}
+                    setMunicipality={updateMunicipality}
+                    municipalities={municipalities}
+                    setMunicipalities={updateMunicipalities}
+                    highlightedMunicipality={municipality && municipality.id}
+                    dataset={rd.data}
+                    spec={spec}
+                    category={category}
+                  />
+                ) : (
+                  <MapStatic spec={spec} />
+                )}
+              </React.Fragment>
+            )}
+          </Center>
+        </div>
       </Box>
 
       <div style={{}}></div>
@@ -429,14 +502,20 @@ const Page = () => {
 const MapComponent = ({
   year,
   spec,
+  highlightedMunicipality,
+  municipalities,
   setMunicipality,
+  setMunicipalities,
   category,
   dataset
 }: {
   year: string;
   category: string;
   spec: Spec;
-  setMunicipality: (m: Municipality, pinned: boolean) => void;
+  highlightedMunicipality: string | undefined;
+  municipalities: Map<string, MunicipalityDatum>;
+  setMunicipality: (m: Municipality) => void;
+  setMunicipalities: (m: Map<string, MunicipalityDatum>) => void;
   dataset: DataSetMetadata;
 }) => {
   const filters = React.useMemo(() => {
@@ -470,9 +549,16 @@ const MapComponent = ({
         console.table(item.datum.observed);
         switch (name) {
           case "municipality":
-            setMunicipality(item.datum, true);
+            view.signal("highlight", { iri: item.datum.iri });
+            setMunicipality({ ...item.datum, id: item.datum.iri });
         }
       });
+
+      highlightedMunicipality &&
+        view.signal("highlight", {
+          iri: highlightedMunicipality
+        });
+
       if (observationReady && obsData) {
         const formatted = obsData.map(d => ({
           iri: d.municipality.value.value,
@@ -487,14 +573,32 @@ const MapComponent = ({
         view
           .data("metrics", formatted)
           .runAsync()
-          .then(() => {
-            console.info(
-              `Vega data insert complete. Added ${formatted.length} entries.`
+          .then(v => {
+            /**
+             * As the aggragation happens internally in vega, the state is populated from here.
+             * This ensures the dropdown knows what values are defined in the dataset and has
+             * enough information for the detail view without having to use a portal etc.
+             */
+            const aggregatedMunicipalities: MunicipalityDatum[] = v.data(
+              "metrics"
             );
+            console.info(
+              `Vega data insert complete. Added ${aggregatedMunicipalities.length} entries. (Aggregated from ${formatted.length})`
+            );
+            const nextValues = new Map(
+              aggregatedMunicipalities.map(d => [d.iri, d])
+            );
+            setMunicipalities(nextValues);
           });
       }
     },
-    [observationReady, obsData, setMunicipality]
+    [
+      highlightedMunicipality,
+      observationReady,
+      obsData,
+      setMunicipality,
+      setMunicipalities
+    ]
   );
   const [ref] = useVegaView({
     spec,
