@@ -2,6 +2,8 @@ import React from "react";
 import { Box, Button, Text } from "rebass";
 import { useDataSets } from "../domain";
 import { Loading } from "./hint";
+import { Trans } from "@lingui/macro";
+import { SectionTitle } from "./chart-controls";
 
 export const DataSetList = ({
   dataSetPreviewIri,
@@ -14,6 +16,9 @@ export const DataSetList = ({
   if (datasets.state === "loaded") {
     return (
       <Box sx={{ bg: "monochrome.100" }}>
+        <SectionTitle>
+          <Trans>Select Dataset</Trans>
+        </SectionTitle>
         {datasets.data.map(d => (
           <DatasetButton
             key={d.iri}
@@ -57,7 +62,7 @@ export const DatasetButton = ({
           left: 0,
           width: "4px",
           height: "calc(100% + 2px)",
-          bg: "ch.venetianRed",
+          bg: "primary.base",
           marginTop: "-1px"
         }}
       ></Box>

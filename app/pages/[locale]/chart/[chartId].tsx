@@ -1,14 +1,18 @@
 import { NextPage } from "next";
 import { useRouter } from "next/router";
 import React from "react";
-import { Box, Flex } from "rebass";
+import { Box } from "rebass";
 import { AppLayout } from "../../../components/layout";
 import { PanelLeft } from "../../../components/panel-left";
 import { PanelMiddle } from "../../../components/panel-middle";
-import { PanelRight } from "../../../components/panel-right";
+import { ChartOptionsSelector } from "../../../components/chart-options-selector";
 import { Stepper } from "../../../components/stepper";
 import { DataCubeProvider } from "../../../domain";
-import { ConfiguratorStateProvider } from "../../../domain/configurator-state";
+import {
+  ConfiguratorStateProvider,
+  useConfiguratorState
+} from "../../../domain/configurator-state";
+import { ChartAnnotationsSelector } from "../../../components/chart-annotations-selector";
 
 const useChartId = () => {
   const { query } = useRouter();
@@ -18,9 +22,11 @@ const useChartId = () => {
   return chartId;
 };
 
-const ChartCreator = ({ chartId }: { chartId: string }) => {
+const ChartCreator = () => {
   // Local state, the dataset preview doesn't need to be persistent.
+  // FIXME: for a11y, "updateDataSetPreviewIri" should also move focus to "Weiter" button (?)
   const [dataSetPreviewIri, updateDataSetPreviewIri] = React.useState<string>();
+  const [state] = useConfiguratorState();
 
   return (
     <Box
@@ -45,15 +51,24 @@ const ChartCreator = ({ chartId }: { chartId: string }) => {
         <Stepper />
       </Box>
 
-      <PanelLeft
-        chartId={chartId}
-        dataSetPreviewIri={dataSetPreviewIri}
-        updateDataSetPreviewIri={updateDataSetPreviewIri}
-      />
+      <Box as="section" data-name="panel-left" variant="container.left">
+        <PanelLeft
+          dataSetPreviewIri={dataSetPreviewIri}
+          updateDataSetPreviewIri={updateDataSetPreviewIri}
+        />
+      </Box>
 
-      <PanelMiddle chartId={chartId} dataSetIri={dataSetPreviewIri} />
-
-      <PanelRight chartId={chartId} />
+      <Box as="section" data-name="panel-middle" variant="container.middle">
+        <PanelMiddle dataSetPreviewIri={dataSetPreviewIri} />
+      </Box>
+      <Box as="section" data-name="panel-right" variant="container.right">
+        {state.state === "CONFIGURING_CHART" && (
+          <ChartOptionsSelector state={state} />
+        )}
+        {state.state === "DESCRIBING_CHART" && (
+          <ChartAnnotationsSelector state={state} />
+        )}
+      </Box>
     </Box>
   );
 };
@@ -65,7 +80,7 @@ const ChartConfiguratorPage: NextPage = () => {
     <DataCubeProvider>
       <AppLayout>
         <ConfiguratorStateProvider chartId={chartId}>
-          <ChartCreator chartId={chartId} />
+          <ChartCreator />
         </ConfiguratorStateProvider>
       </AppLayout>
     </DataCubeProvider>

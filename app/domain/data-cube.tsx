@@ -14,8 +14,7 @@ import {
 } from "react";
 import { RDState, useRemoteData } from "../lib/remote-data";
 import { useLocale } from "../lib/use-locale";
-import { Fields } from "./charts";
-import { Filters } from "./config-types";
+import { ChartFields, Filters } from "./config-types";
 import {
   AttributeWithMeta,
   DimensionWithMeta,
@@ -23,7 +22,8 @@ import {
   MeasureWithMeta,
   Observations,
   parseObservations,
-  RawObservations
+  ObservationsPreview,
+  RawObservationValue
 } from "./data";
 
 const DataCubeContext = createContext<string>("");
@@ -103,6 +103,11 @@ export interface DataSetMetadata {
   dimensions: DimensionWithMeta[];
   attributes: AttributeWithMeta[];
   measures: MeasureWithMeta[];
+  componentLabels: Record<string, string>;
+  componentsByIri: Record<
+    string,
+    DimensionWithMeta | AttributeWithMeta | MeasureWithMeta
+  >;
 }
 
 export const useDataSetAndMetadata = (
@@ -139,17 +144,60 @@ export const useDataSetAndMetadata = (
       }))
     );
 
+    const componentLabels = [...dimensions, ...measures, ...attributes].reduce<
+      Record<string, string>
+    >((labels, component) => {
+      labels[component.iri.value] = component.label.value;
+      return labels;
+    }, {});
+
+    const componentsByIri = [
+      ...dimensionsWithValues,
+      ...measuresWithMinMax,
+      ...attributesWithValues
+    ].reduce<
+      Record<string, DimensionWithMeta | AttributeWithMeta | MeasureWithMeta>
+    >((components, component) => {
+      components[component.component.iri.value] = component;
+      return components;
+    }, {});
+
     return {
       dataSet,
       dimensions: dimensionsWithValues,
       attributes: attributesWithValues,
-      measures: measuresWithMinMax
+      measures: measuresWithMinMax,
+      componentLabels,
+      componentsByIri
     };
   }, [entryPoint, iri]);
   return useRemoteData(["datasetandmeta", entryPoint, iri], fetchCb);
 };
 
-export const useObservations = <FieldsType extends Fields>({
+export const usePreviewObservations = ({
+  dataSet,
+  selection
+}: {
+  dataSet: DataCube;
+  selection: [string, Dimension | Measure][];
+}): RDState<ObservationsPreview> => {
+  const fetchData = useCallback(async () => {
+    const query = dataSet
+      .query()
+      .limit(10)
+      .select(selection);
+
+    const data = await query.execute();
+    return parseObservations(data);
+  }, [dataSet, selection]);
+
+  return useRemoteData<ObservationsPreview>(
+    ["observationsPreview", dataSet, selection],
+    fetchData
+  );
+};
+
+export const useObservations = <FieldsType extends ChartFields>({
   dataSet,
   dimensions,
   measures,
@@ -209,12 +257,13 @@ export const useObservations = <FieldsType extends Fields>({
       : [];
 
     // TODO: Maybe explicitly specify all dimension fields? Currently not necessary because they're selected anyway.
-    const selectedComponents = Object.entries(fields).flatMap(([key, iri]) =>
-      componentsByIri[iri] !== undefined
-        ? [[key, componentsByIri[iri].component]]
-        : []
-    );
-
+    const selectedComponents: [string, Dimension | Measure][] = Object.entries<{
+      componentIri: string;
+    }>(fields).flatMap(([key, field]) => {
+      return componentsByIri[field.componentIri] !== undefined
+        ? [[key, componentsByIri[field.componentIri].component]]
+        : [];
+    });
     const query = dataSet
       .query()
       .limit(null)
@@ -222,7 +271,7 @@ export const useObservations = <FieldsType extends Fields>({
       .filter(constructedFilters);
 
     // WARNING! Potentially dangrous/wrong typecast because query.execute() returns Promise<any[]>
-    const data: RawObservations<FieldsType> = await query.execute();
+    const data = await query.execute();
     return parseObservations(data);
   }, [filters, dataSet, fields, measures, dimensions]);
 
@@ -231,7 +280,8 @@ export const useObservations = <FieldsType extends Fields>({
     fetchData
   );
 };
-export const useRawObservations = <FieldsType extends Fields>({
+
+export const useRawObservations = ({
   dataSet,
   dimensions,
   measures,
@@ -241,9 +291,9 @@ export const useRawObservations = <FieldsType extends Fields>({
   dataSet: DataCube;
   dimensions: DimensionWithMeta[];
   measures: MeasureWithMeta[];
-  fields: FieldsType;
+  fields: Record<string, { componentIri: string }>;
   filters?: Filters;
-}): RDState<RawObservations<FieldsType>> => {
+}): RDState<Record<string, RawObservationValue>[]> => {
   const fetchData = useCallback(async () => {
     const componentsByIri = [...measures, ...dimensions].reduce<
       Record<string, DimensionWithMeta | MeasureWithMeta>
@@ -291,12 +341,13 @@ export const useRawObservations = <FieldsType extends Fields>({
       : [];
 
     // TODO: Maybe explicitly specify all dimension fields? Currently not necessary because they're selected anyway.
-    const selectedComponents = Object.entries(fields).flatMap(([key, iri]) =>
-      componentsByIri[iri] !== undefined
-        ? [[key, componentsByIri[iri].component]]
-        : []
-    );
-
+    const selectedComponents: [string, Dimension | Measure][] = Object.entries<{
+      componentIri: string;
+    }>(fields).flatMap(([key, field]) => {
+      return componentsByIri[field.componentIri] !== undefined
+        ? [[key, componentsByIri[field.componentIri].component]]
+        : [];
+    });
     const query = dataSet
       .query()
       .limit(null)
@@ -304,11 +355,11 @@ export const useRawObservations = <FieldsType extends Fields>({
       .filter(constructedFilters);
 
     // WARNING! Potentially dangrous/wrong typecast because query.execute() returns Promise<any[]>
-    const data: RawObservations<FieldsType> = await query.execute();
+    const data = await query.execute();
     return data;
   }, [filters, dataSet, fields, measures, dimensions]);
 
-  return useRemoteData<RawObservations<FieldsType>>(
+  return useRemoteData(
     ["observations", filters, dataSet, fields, measures, dimensions],
     fetchData
   );

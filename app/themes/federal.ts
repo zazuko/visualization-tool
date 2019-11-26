@@ -74,6 +74,7 @@ export const theme: Theme = {
     },
     muted: "#F5F5F5",
     blueGrey: "#F9FAFB",
+    blueGreyDarker: "#F2F7F9",
     focus: "#333333",
     error: "#FF5555",
     hint: "#757575",
@@ -127,6 +128,7 @@ export const theme: Theme = {
   },
   radii: {
     default: 3,
+    bigger: 4,
     circle: 99999
   },
   shadows: {
@@ -275,24 +277,21 @@ export const theme: Theme = {
         borderBottomWidth: "1px",
         borderBottomStyle: "solid",
         borderBottomColor: "monochrome.300",
+        "&:first-of-type": {
+          borderTopWidth: "1px",
+          borderTopStyle: "solid",
+          borderTopColor: "monochrome.300"
+        },
         ":hover": {
-          bg: "monochrome.300"
+          bg: "blueGreyDarker"
         },
         ":active": {
-          bg: "monochrome.300"
-        },
-        ":focus": {
-          bg: "monochrome.300",
-          outline: "none"
+          bg: "blueGreyDarker"
         }
       },
       selected: {
         variant: "buttons.datasetButton.normal",
-        borderLeftColor: "ch.venetianRed",
-        ":hover": {
-          borderLeftColor: "ch.venetianRed",
-          bg: "monochrome.300"
-        }
+        bg: "blueGreyDarker"
       }
     },
     step: {
@@ -324,9 +323,31 @@ export const theme: Theme = {
       ":disabled": {
         cursor: "initial",
         bg: "muted"
+      }
+    },
+    control: {
+      color: "monochrome.700",
+      borderColor: "primary.base",
+      borderRadius: "default",
+      width: "100%",
+      minWidth: 160,
+      maxWidth: 300,
+      my: "2px",
+      px: 2,
+      py: 3,
+      fontFamily: "frutigerRegular",
+      fontSize: [3, 3, 3],
+      transition: "background-color .2s",
+      cursor: "pointer",
+      ":hover": {
+        bg: "blueGreyDarker"
       },
-      ":focus": {
-        outline: "1px solid #333333"
+      ":active": {
+        bg: "blueGreyDarker"
+      },
+      ":disabled": {
+        cursor: "initial",
+        bg: "muted"
       }
     }
   },
@@ -430,7 +451,7 @@ export const theme: Theme = {
         overflow: "scroll"
       },
       left: {
-        bg: "blueGrey",
+        bg: "monochrome.100",
         variant: "variants.container.root",
         boxShadow: "rightSide",
         borderRightColor: "monochrome.500",
@@ -481,43 +502,32 @@ export const theme: Theme = {
       pb: 1
     },
     controlSection: {
+      pb: 2,
       borderTopColor: "monochrome.500",
       borderTopWidth: "1px",
       borderTopStyle: "solid",
       "&:first-of-type": {
         borderTopWidth: 0
-      },
-      "&:last-of-type": {
-        borderBottomColor: "monochrome.500",
-        borderBottomWidth: "1px",
-        borderBottomStyle: "solid"
       }
     },
     controlSectionTitle: {
       p: 3,
-      bg: "monochrome.100",
+      bg: "transparent",
       appearance: "none",
       width: "100%",
       border: "none",
       cursor: "pointer"
     },
     controlSectionContent: {
-      p: 3,
-      borderTopColor: "monochrome.300",
-      borderTopWidth: "1px",
-      borderTopStyle: "solid"
+      px: 3
     },
     chartTypeRadio: {
       width: "86px",
       height: "86px",
       mx: 4,
       my: 6,
-      transition: "background-color .2s",
-      ":focus": {
-        borderColor: "focus",
-        borderWidth: "1px",
-        borderStyle: "solid"
-      }
+      transition: "all .2s",
+      borderRadius: "bigger"
     },
 
     hint: {
@@ -544,9 +554,8 @@ export const theme: Theme = {
     },
     palette: {
       menu: {
-        ":focus": {
-          outline: "1px solid #333333"
-        }
+        p: 1,
+        bg: "monochrome.100"
       },
       row: { bg: "monochrome.100" },
       color: {
@@ -559,14 +568,35 @@ export const theme: Theme = {
         borderWidth: "1px",
         borderStyle: "solid",
         "&:first-of-type": {
-          borderTopLeftRadius: "4px",
-          borderBottomLeftRadius: "4px"
+          borderTopLeftRadius: "bigger",
+          borderBottomLeftRadius: "bigger"
         },
         "&:last-of-type": {
-          borderTopRightRadius: "4px",
-          borderBottomRightRadius: "4px"
+          borderTopRightRadius: "bigger",
+          borderBottomRightRadius: "bigger"
         }
       }
+    },
+    datatable: {
+      headerRow: {
+        fontFamily: "frutigerBold",
+        fontSize: [3],
+        verticalAlign: "baseline",
+        color: "monochrome.700",
+        borderBottomColor: "monochrome.700",
+        borderBottomWidth: "1px",
+        borderBottomStyle: "solid"
+      },
+      headerCell: { px: 2, py: 3, minWidth: 128 },
+      row: {
+        fontFamily: "frutigerLight",
+        fontSize: [3],
+        color: "monochrome.800",
+        borderBottomColor: "monochrome.400",
+        borderBottomWidth: "1px",
+        borderBottomStyle: "solid"
+      },
+      cell: { px: 2, py: 3, minWidth: 128 }
     }
   }
 };
@@ -612,6 +642,11 @@ export const globalStyles = `
     svg {
       display: block;
     }
+
+  }
+
+  *:focus {
+    outline: 4px solid #333333;
   }
 
   fieldset {

@@ -3,18 +3,23 @@ import { Flex, Box } from "rebass";
 import { ChartTypeSelectorField } from "./field";
 import { Loading, Hint } from "./hint";
 import { useDataSetAndMetadata, getPossibleChartType } from "../domain";
-import { ChartType } from "../domain/config-types";
+import {
+  ChartType,
+  ConfiguratorStateSelectingChartType,
+  ConfiguratorStatePreSelectingChartType
+} from "../domain/config-types";
 import { Trans } from "@lingui/macro";
+import { SectionTitle } from "./chart-controls";
 
 const chartTypes: ChartType[] = ["column", "line", "area", "scatterplot"];
 export const ChartTypeSelector = ({
-  chartId,
-  dataSet
+  state
 }: {
-  chartId: string;
-  dataSet: string;
+  state:
+    | ConfiguratorStateSelectingChartType
+    | ConfiguratorStatePreSelectingChartType;
 }) => {
-  const meta = useDataSetAndMetadata(dataSet);
+  const meta = useDataSetAndMetadata(state.dataSet);
   if (meta.state === "loaded") {
     const possibleChartTypes = getPossibleChartType({
       chartTypes,
@@ -23,8 +28,11 @@ export const ChartTypeSelector = ({
     return (
       <Box as="fieldset">
         <legend style={{ display: "none" }}>
-          <Trans>Chart-Typ auswählen</Trans>
+          <Trans>Chart Type</Trans>
         </legend>
+        <SectionTitle>
+          <Trans>Chart Type</Trans>
+        </SectionTitle>
         <Flex
           width="100%"
           flexWrap="wrap"
@@ -40,7 +48,7 @@ export const ChartTypeSelector = ({
           {!possibleChartTypes ? (
             <Hint>
               <Trans>
-                Mit ausgewähltem Datensatz kann kein Graphik dargestellt werden
+                No visualization can be created with the selected dataset.
               </Trans>
             </Hint>
           ) : (
@@ -48,7 +56,6 @@ export const ChartTypeSelector = ({
               <ChartTypeSelectorField
                 key={d}
                 type="radio"
-                chartId={chartId}
                 path={"chartType"}
                 label={d}
                 value={d}

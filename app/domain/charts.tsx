@@ -1,67 +1,15 @@
-import { ChartType, Filters } from "./config-types";
+import { ChartFields, ChartType } from "./config-types";
 import {
   DimensionWithMeta,
   getCategoricalDimensions,
   getComponentIri,
-  getTimeDimensions,
   isTimeDimension,
-  MeasureWithMeta
+  MeasureWithMeta,
+  getTimeDimensions
 } from "./data";
 import { DataSetMetadata } from "./data-cube";
 
-export interface BarChartFields {
-  xField: string;
-  heightField: string;
-  groupByField: string;
-}
-export interface LineChartFields {
-  xField: string;
-  heightField: string;
-  groupByField: string;
-}
-export interface AreaChartFields {
-  xField: string;
-  heightField: string;
-  groupByField: string;
-}
-export interface ScatterPlotFields {
-  xField: string;
-  yField: string;
-  groupByField: string;
-  labelField: string;
-}
-
-export interface CHMapFields {
-  municipality: string;
-  total: string;
-}
-
-export type Fields =
-  | BarChartFields
-  | LineChartFields
-  | AreaChartFields
-  | ScatterPlotFields
-  | CHMapFields;
-
-export const getInitialFilters = (dimensions: DimensionWithMeta[]): Filters => {
-  const nonTimeDimensions = dimensions.filter(
-    dimension => !isTimeDimension(dimension)
-  );
-  return nonTimeDimensions.reduce<Filters>((obj, cur, i) => {
-    return cur.values.length > 0
-      ? {
-          ...obj,
-          [cur.component.iri.value]: {
-            type: "multi",
-            values: { [cur.values[0].value.value]: true }
-          }
-        }
-      : obj;
-  }, {});
-};
-
-const visuals = { palette: "category10" };
-export const getInitialState = ({
+export const getInitialFields = ({
   chartType,
   dimensions,
   measures
@@ -69,7 +17,7 @@ export const getInitialState = ({
   chartType: ChartType;
   dimensions: DimensionWithMeta[];
   measures: MeasureWithMeta[];
-}): {} => {
+}): ChartFields => {
   // FIXME: Should the returned type match the Keys defined above?
   const nonTimeDimensions = dimensions.filter(
     dimension => !isTimeDimension(dimension)
@@ -77,39 +25,63 @@ export const getInitialState = ({
   switch (chartType) {
     case "scatterplot":
       return {
-        x: getComponentIri(measures[0]),
-        y: getComponentIri(measures.length > 1 ? measures[1] : measures[0]),
-        color: getComponentIri(getCategoricalDimensions(dimensions)[0]),
-        label: getComponentIri(getCategoricalDimensions(dimensions)[0]),
-        ...visuals
+        x: { componentIri: getComponentIri(measures[0])},
+        y: { componentIri: getComponentIri(measures.length > 1 ? measures[1] : measures[0])},
+        segment: {
+          componentIri: getComponentIri(
+            getCategoricalDimensions(dimensions)[0]
+          ),
+          palette: "category10"
+        }
+        // label: getComponentIri(getCategoricalDimensions(dimensions)[0]),
       };
     case "column":
       return {
-        x: getComponentIri(nonTimeDimensions[0]),
-        height: getComponentIri(measures[0]),
-        color: getComponentIri(getCategoricalDimensions(dimensions)[0]),
-        ...visuals
+        x: { componentIri: getComponentIri(dimensions[0]) },
+        y: { componentIri: getComponentIri(measures[0]) },
+        segment: {
+          componentIri: getComponentIri(
+            getCategoricalDimensions(dimensions)[0]
+          ),
+          type: "stacked",
+          palette: "category10"
+        }
       };
     case "line":
       return {
-        x: getComponentIri(getTimeDimensions(dimensions)[0]),
-        height: getComponentIri(measures[0]),
-        color: getComponentIri(getCategoricalDimensions(dimensions)[1]),
-        ...visuals
+        x: { componentIri: getComponentIri(getTimeDimensions(dimensions)[0]) },
+        y: { componentIri: getComponentIri(measures[0]) },
+        segment: {
+          componentIri: getComponentIri(
+            getCategoricalDimensions(dimensions)[1]
+          ),
+          palette: "category10"
+        }
       };
+
     case "area":
       return {
-        x: getComponentIri(getTimeDimensions(dimensions)[0]),
-        height: getComponentIri(measures[0]),
-        color: getComponentIri(getCategoricalDimensions(dimensions)[1]),
-        ...visuals
+        x: { componentIri: getComponentIri(getTimeDimensions(dimensions)[0]) },
+        y: { componentIri: getComponentIri(measures[0]) },
+        segment: {
+          componentIri: getComponentIri(
+            getCategoricalDimensions(dimensions)[1]
+          ),
+          palette: "category10"
+        }
       };
+
     default:
       return {
-        x: getComponentIri(nonTimeDimensions[0]),
-        height: getComponentIri(measures[0]),
-        color: getComponentIri(getCategoricalDimensions(dimensions)[0]),
-        ...visuals
+        x: { componentIri: getComponentIri(dimensions[0]) },
+        y: { componentIri: getComponentIri(measures[0]) },
+        segment: {
+          componentIri: getComponentIri(
+            getCategoricalDimensions(dimensions)[0]
+          ),
+          type: "stacked",
+          palette: "category10"
+        }
       };
   }
 };

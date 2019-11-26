@@ -3,58 +3,46 @@ import React from "react";
 import { Box, Link } from "rebass";
 import { useConfiguratorState } from "../domain/configurator-state";
 import { ChartConfigurator } from "./chart-configurator";
-import { ControlSection } from "./chart-controls";
+import { CollapsibleSection } from "./chart-controls";
 import { ChartTypeSelector } from "./chart-type-selector";
-import { ContainerTitle } from "./container";
 import { DataSetList } from "./dataset-selector";
 import { LocalizedLink } from "./links";
 import { ChartAnnotator } from "./chart-annotator";
 
 export const PanelLeft = ({
-  chartId,
   dataSetPreviewIri,
   updateDataSetPreviewIri
 }: {
-  chartId: string;
   dataSetPreviewIri?: string;
   updateDataSetPreviewIri: (x: string) => void;
 }) => {
   const [state] = useConfiguratorState();
 
   return (
-    <Box as="section" data-name="panel-left" variant="container.left">
-      {chartId === "new" ? (
-        <>
-          <ContainerTitle>
-            <Trans>Datensatz auswählen</Trans>
-          </ContainerTitle>
-          <DataSetList
-            dataSetPreviewIri={dataSetPreviewIri}
-            updateDataSetPreviewIri={updateDataSetPreviewIri}
-          />
-        </>
+    <>
+      {state.state === "SELECTING_DATASET" ? (
+        <DataSetList
+          dataSetPreviewIri={dataSetPreviewIri}
+          updateDataSetPreviewIri={updateDataSetPreviewIri}
+        />
       ) : (
         <>
-          {state.state === "SELECTING_CHART_TYPE" && (
-            <>
-              <ContainerTitle>
-                <Trans>Chart-Typ auswählen</Trans>
-              </ContainerTitle>
-              <ChartTypeSelector chartId={chartId} dataSet={state.dataSet} />
-            </>
+          {(state.state === "SELECTING_CHART_TYPE" ||
+            state.state === "PRE_SELECTING_CHART_TYPE") && (
+            <ChartTypeSelector state={state} />
           )}
           {state.state === "CONFIGURING_CHART" && (
-            <ChartConfigurator chartId={chartId} dataSetIri={state.dataSet} />
+            <ChartConfigurator state={state} />
           )}
           {state.state === "DESCRIBING_CHART" && (
-            <ChartAnnotator chartId={chartId} />
+            <ChartAnnotator state={state} />
           )}
 
           {/* Step 5 */}
           {state.state === "PUBLISHED" && (
-            <ControlSection title="Teilen & einbetten">
+            <CollapsibleSection title={<Trans>Share & embed</Trans>}>
               <Box mb={2}>
-                <Trans id="test-form-success">Grafik URL</Trans>
+                <Trans id="test-form-success">Visualization URL</Trans>
               </Box>
               <Box mb={2}>
                 <LocalizedLink href={`/[locale]/v/${state.configKey}`} passHref>
@@ -63,10 +51,10 @@ export const PanelLeft = ({
                   </Link>
                 </LocalizedLink>
               </Box>
-            </ControlSection>
+            </CollapsibleSection>
           )}
         </>
       )}
-    </Box>
+    </>
   );
 };

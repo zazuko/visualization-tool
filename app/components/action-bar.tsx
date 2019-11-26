@@ -4,17 +4,11 @@ import { Button, Flex } from "rebass";
 import { useConfiguratorState } from "../domain/configurator-state";
 import { LocalizedLink } from "./links";
 
-export const ActionBar = ({
-  chartId,
-  dataSetIri
-}: {
-  chartId: string;
-  dataSetIri?: string;
-}) => {
+export const ActionBar = ({ dataSetIri }: { dataSetIri?: string }) => {
   const [state, dispatch] = useConfiguratorState();
   return (
     <Flex role="navigation" variant="actionBar" justifyContent="space-between">
-      {chartId === "new" ? (
+      {state.state === "SELECTING_DATASET" ? (
         <Button
           variant="primary"
           onClick={() => {
@@ -28,11 +22,12 @@ export const ActionBar = ({
           sx={{ width: "112px", ml: "auto" }}
           disabled={!dataSetIri}
         >
-          <Trans>Weiter</Trans>
+          <Trans>Next</Trans>
         </Button>
       ) : (
         <>
-          {state.state === "SELECTING_CHART_TYPE" && (
+          {(state.state === "SELECTING_CHART_TYPE" ||
+            state.state === "PRE_SELECTING_CHART_TYPE") && (
             <>
               <LocalizedLink
                 href={{
@@ -42,16 +37,16 @@ export const ActionBar = ({
                 passHref
               >
                 <Button as="a" variant="secondary">
-                  <Trans>Zurück</Trans>
+                  <Trans>Previous</Trans>
                 </Button>
               </LocalizedLink>
               <Button
                 variant="primary"
                 onClick={() => dispatch({ type: "CHART_TYPE_SELECTED" })}
                 sx={{ ml: "auto" }}
-                disabled={state.chartConfig.chartType === "none"}
+                disabled={state.chartConfig === undefined}
               >
-                <Trans>Weiter</Trans>
+                <Trans>Next</Trans>
               </Button>
             </>
           )}
@@ -68,7 +63,7 @@ export const ActionBar = ({
                 sx={{ mr: "auto" }}
                 disabled={false}
               >
-                <Trans>Zurück</Trans>
+                <Trans>Previous</Trans>
               </Button>
               <Button
                 variant="primary"
@@ -76,7 +71,7 @@ export const ActionBar = ({
                 sx={{ ml: "auto" }}
                 // disabled={state.chartConfig.chartType === "none"}
               >
-                <Trans>Weiter</Trans>
+                <Trans>Next</Trans>
               </Button>
             </>
           )}
@@ -87,7 +82,7 @@ export const ActionBar = ({
                 onClick={() => dispatch({ type: "CHART_TYPE_SELECTED" })}
                 sx={{ mr: "auto" }}
               >
-                <Trans>Zurück</Trans>
+                <Trans>Previous</Trans>
               </Button>
               <Button
                 variant="primary"
@@ -95,7 +90,7 @@ export const ActionBar = ({
                 sx={{ ml: "auto" }}
                 // disabled={state.chartConfig.chartType === "none"}
               >
-                <Trans>Publizieren</Trans>
+                <Trans>Publish</Trans>
               </Button>
             </>
           )}
@@ -107,7 +102,7 @@ export const ActionBar = ({
                 sx={{ mr: "auto" }}
                 disabled
               >
-                <Trans>Bearbeiten</Trans>
+                <Trans>Edit</Trans>
               </Button>
               <LocalizedLink
                 href={{
@@ -117,7 +112,7 @@ export const ActionBar = ({
                 passHref
               >
                 <Button as="a" variant="outline">
-                  <Trans>Neue Visualisierung</Trans>
+                  <Trans>New Visualization</Trans>
                 </Button>
               </LocalizedLink>
             </>

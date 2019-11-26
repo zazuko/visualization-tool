@@ -1,7 +1,6 @@
 import get from "lodash/get";
 import { ChangeEvent, InputHTMLAttributes, useCallback } from "react";
-import { getInitialFilters, getInitialState } from ".";
-import { ChartType, MetaKey } from "./config-types";
+import { ChartType, MetaKey, FilterValueSingle } from "./config-types";
 import { useConfiguratorState } from "./configurator-state";
 import { DataSetMetadata } from "./data-cube";
 import { Locales } from "../locales/locales";
@@ -21,51 +20,134 @@ export type FieldProps = Pick<
   "onChange" | "name" | "value" | "checked" | "type"
 >;
 
-export const useField = ({
-  path,
-  type = "text",
+// export const useField = ({
+//   path,
+//   type = "text",
+//   value
+// }: {
+//   path: string;
+//   type?: "text" | "checkbox" | "radio" | "input" | "select";
+//   value?: string;
+// }): FieldProps => {
+//   const [state, dispatch] = useConfiguratorState();
+
+//   const onChange = useCallback<(e: ChangeEvent<HTMLInputElement>) => void>(
+//     e => {
+//       dispatch({
+//         type: "CHART_CONFIG_CHANGED",
+//         value: {
+//           path,
+//           value:
+//             type === "checkbox"
+//               ? e.currentTarget.checked
+//                 ? true
+//                 : undefined
+//               : e.currentTarget.value
+//         }
+//       });
+//     },
+//     [dispatch, path, type]
+//   );
+
+//   const stateValue =
+//     state.state === "CONFIGURING_CHART" ? get(state.chartConfig, path, "") : "";
+
+//   const checked =
+//     type === "checkbox"
+//       ? stateValue
+//       : type === "radio" || "select"
+//       ? stateValue === value
+//       : undefined;
+
+//   return {
+//     name: path,
+//     value: value ? value : stateValue,
+//     type,
+//     checked,
+//     onChange
+//   };
+// };
+
+export const useControlTab = ({
   value
 }: {
-  path: string;
-  type?: "text" | "checkbox" | "radio" | "input" | "select";
-  value?: string;
-}): FieldProps => {
+  value: string;
+}): FieldProps & {
+  onClick: (x: string) => void;
+} => {
   const [state, dispatch] = useConfiguratorState();
 
-  const onChange = useCallback<(e: ChangeEvent<HTMLInputElement>) => void>(
-    e => {
-      dispatch({
-        type: "CHART_CONFIG_CHANGED",
-        value: {
-          path,
-          value:
-            type === "checkbox"
-              ? e.currentTarget.checked
-                ? true
-                : undefined
-              : e.currentTarget.value
-        }
-      });
-    },
-    [dispatch, path, type]
-  );
+  const onClick = useCallback<() => void>(() => {
+    dispatch({
+      type: "CONTROL_TAB_CHANGED",
+      value
+    });
+  }, [dispatch, value]);
 
   const stateValue =
-    state.state === "CONFIGURING_CHART" ? get(state.chartConfig, path, "") : "";
+    state.state === "CONFIGURING_CHART" ? state.activeField : "";
 
-  const checked =
-    type === "checkbox"
-      ? stateValue
-      : type === "radio" || "select"
-      ? stateValue === value
-      : undefined;
+  const checked = stateValue === value;
 
   return {
-    name: path,
-    value: value ? value : stateValue,
-    type,
+    value,
     checked,
-    onChange
+    onClick
+  };
+};
+
+export const useFilterTab = ({
+  value
+}: {
+  value: string;
+}): FieldProps & {
+  onClick: (x: string) => void;
+} => {
+  const [state, dispatch] = useConfiguratorState();
+
+  const onClick = useCallback<() => void>(() => {
+    dispatch({
+      type: "CONTROL_TAB_CHANGED",
+      value
+    });
+  }, [dispatch, value]);
+
+  const stateValue =
+    state.state === "CONFIGURING_CHART" ? state.activeField : "";
+
+  const checked = stateValue === value;
+
+  return {
+    value,
+    checked,
+    onClick
+  };
+};
+export const useAnnotatorTab = ({
+  value
+}: {
+  value: string;
+}): FieldProps & {
+  onClick: (x: string) => void;
+} => {
+  const [state, dispatch] = useConfiguratorState();
+
+  const onClick = useCallback<() => void>(() => {
+    dispatch({
+      type: "CHART_ANNOTATION_TAB_CHANGED",
+      value
+    });
+  }, [dispatch, value]);
+
+  const stateValue =
+    state.state === "DESCRIBING_CHART" ? state.activeField : "";
+
+  const checked = stateValue === value;
+
+  return {
+    value,
+    checked,
+    onClick
   };
 };
 
@@ -74,11 +156,11 @@ export const useMetaField = ({
   locale,
   value
 }: {
-  metaKey: MetaKey;
+  metaKey: string;
   locale: Locales;
   value?: string;
 }): FieldProps => {
-  const [state, dispatch] = useConfiguratorState();
+  const [, dispatch] = useConfiguratorState();
 
   const onChange = useCallback<(e: ChangeEvent<HTMLInputElement>) => void>(
     e => {
@@ -176,6 +258,88 @@ export const useSingleFilterField = ({
   };
 };
 
+export const useChartFieldField = ({
+  componentIri,
+  field,
+  dataSetMetadata
+}: {
+  field: string;
+  componentIri?: string;
+  dataSetMetadata: DataSetMetadata;
+}): FieldProps => {
+  const [state, dispatch] = useConfiguratorState();
+
+  const onChange = useCallback<(e: ChangeEvent<HTMLInputElement>) => void>(
+    e => {
+      dispatch({
+        type: "CHART_FIELD_CHANGED",
+        value: {
+          componentIri: e.currentTarget.value,
+          field,
+          dataSetMetadata
+        }
+      });
+    },
+    [dispatch, field, dataSetMetadata]
+  );
+
+  let value: string | undefined;
+  if (state.state === "CONFIGURING_CHART") {
+    const currentField: { componentIri: string } | undefined =
+      state.chartConfig.fields[field];
+    if (currentField) {
+      value = currentField.componentIri;
+    }
+  }
+
+  const checked = value === componentIri;
+
+  return {
+    name: field,
+    value,
+    checked,
+    onChange
+  };
+};
+export const useChartOptionField = ({
+  field,
+  path,
+  label,
+  value
+}: {
+  field: string;
+  path: string;
+  label: string;
+  value: string;
+}): FieldProps => {
+  const [state, dispatch] = useConfiguratorState();
+
+  const onChange = useCallback<(e: ChangeEvent<HTMLInputElement>) => void>(
+    e => {
+      dispatch({
+        type: "CHART_OPTION_CHANGED",
+        value: {
+          field,
+          path,
+          value
+        }
+      });
+    },
+    [dispatch, field, path, value]
+  );
+  const stateValue =
+    state.state === "CONFIGURING_CHART"
+      ? get(state, `chartConfig.fields.${field}.${path}`, "")
+      : "";
+  const checked = stateValue === value;
+
+  return {
+    name: path,
+    value,
+    checked,
+    onChange
+  };
+};
 export const useChartTypeSelectorField = ({
   path,
   value,
@@ -186,25 +350,19 @@ export const useChartTypeSelectorField = ({
   metaData: DataSetMetadata;
 }): FieldProps => {
   const [state, dispatch] = useConfiguratorState();
-  const { dimensions, measures } = metaData;
   const onChange = useCallback<(e: ChangeEvent<HTMLInputElement>) => void>(
     e => {
       const chartType = e.currentTarget.value as ChartType;
-      const filters = getInitialFilters(dimensions);
-      const initialState = getInitialState({ chartType, dimensions, measures });
+
       dispatch({
         type: "CHART_TYPE_PREVIEWED",
         value: {
-          path: "chartConfig",
-          value: {
-            chartType,
-            filters,
-            ...initialState
-          }
+          chartType,
+          dataSetMetadata: metaData
         }
       });
     },
-    [dimensions, dispatch, measures]
+    [dispatch, metaData]
   );
 
   const stateValue =

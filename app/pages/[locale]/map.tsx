@@ -18,16 +18,32 @@ import { useResizeObserver } from "../../lib/use-resize-observer";
 const DEFAULT_CATEGORY = "http://elcom.zazuko.com/category/H4";
 const DEFAULT_MEASURE = "http://elcom.zazuko.com/attribute/total";
 const FIELDS = {
-  municipality: "http://elcom.zazuko.com/attribute/municipality",
-  total: "http://elcom.zazuko.com/attribute/total",
-  kev: "http://elcom.zazuko.com/attribute/kev",
-  gridusage: "http://elcom.zazuko.com/attribute/gridusage",
-  energy: "http://elcom.zazuko.com/attribute/energy",
-  fee: "http://elcom.zazuko.com/attribute/fee"
+  municipality: {
+    componentIri: "http://elcom.zazuko.com/attribute/municipality"
+  },
+  total: {
+    componentIri: "http://elcom.zazuko.com/attribute/total"
+  },
+  kev: {
+    componentIri: "http://elcom.zazuko.com/attribute/kev"
+  },
+  gridusage: {
+    componentIri: "http://elcom.zazuko.com/attribute/gridusage"
+  },
+  energy: {
+    componentIri: "http://elcom.zazuko.com/attribute/energy"
+  },
+  fee: {
+    componentIri: "http://elcom.zazuko.com/attribute/fee"
+  }
 };
 
-function getKeyByValue(object: Record<string, {}>, value: string) {
-  return Object.keys(object).find(key => object[key] === value);
+function getKeyByNestedValue(
+  object: Record<string, Record<string, {}>>,
+  nestedKey: string,
+  value: string
+) {
+  return Object.keys(object).find(k => object[k][nestedKey] === value);
 }
 
 const shapesCtx = require.context(
@@ -119,17 +135,18 @@ const Page = () => {
   const [resizeRef, width, height] = useResizeObserver();
 
   const updateMeasure = (m: MeasureWithMeta | undefined) => {
-    const lookupKey = m && getKeyByValue(FIELDS, m.component.iri.value);
+    const lookupKey =
+      m && getKeyByNestedValue(FIELDS, "componentIri", m.component.iri.value);
     if (m && m.max && m.min && lookupKey) {
       setMeasure({
         iri: m.component.iri.value,
-        label: m.component.labels[0].value,
+        label: m.component.label.value,
         min: +m.min.value,
         max: +m.max.value,
         lookup: lookupKey
       });
     } else {
-      console.warn(`Could not apply filter for ${m}`);
+      console.warn(`Could not apply filter.`, m);
     }
   };
 
@@ -356,7 +373,7 @@ const Page = () => {
                       d.component.iri.value ===
                       "http://elcom.zazuko.com/attribute/municipality";
 
-                    const label = d.component.labels[0].value;
+                    const label = d.component.label.value;
                     return (
                       <div key={label + index}>
                         <Select
@@ -389,7 +406,7 @@ const Page = () => {
                           }}
                           options={[
                             {
-                              label: d.component.labels[0].value || "...",
+                              label: d.component.label.value || "...",
                               value: ""
                             },
                             ...d.values
@@ -431,7 +448,7 @@ const Page = () => {
                     updateMeasure(match);
                   }}
                   options={rd.data.measures.map(d => ({
-                    label: d.component.labels[0].value,
+                    label: d.component.label.value,
                     value: d.component.iri.value
                   }))}
                 />
