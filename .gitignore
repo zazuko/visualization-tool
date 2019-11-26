@@ -5,3 +5,6 @@
 
 /app/locales/_build
 /app/locales/**/*.js
+
+# Geodata
+/app/public/static/shapes/in
