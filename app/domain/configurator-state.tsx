@@ -25,7 +25,14 @@ import { getInitialFields } from "./charts";
 
 export type ConfiguratorStateAction =
   | { type: "INITIALIZED"; value: ConfiguratorState }
-  | { type: "DATASET_SELECTED"; value: { dataSet: string; title?: string } }
+  | {
+      type: "DATASET_SELECTED";
+      value: {
+        dataSet: string;
+        title?: string;
+        dataSetMetadata: DataSetMetadata;
+      };
+    }
   | {
       type: "CHART_TYPE_PREVIEWED";
       value: { chartType: ChartType; dataSetMetadata: DataSetMetadata };
@@ -36,10 +43,6 @@ export type ConfiguratorStateAction =
   | {
       type: "CONTROL_TAB_CHANGED";
       value: string;
-    }
-  | {
-      type: "CHART_CONFIG_CHANGED";
-      value: { path: string | string[]; value: $FixMe };
     }
   | {
       type: "CHART_FIELD_CHANGED";
@@ -117,9 +120,7 @@ export const getFilterValue = (
   state: ConfiguratorState,
   dimensionIri: string
 ): FilterValue | undefined => {
-  return state.state !== "INITIAL" &&
-    state.state !== "SELECTING_DATASET" &&
-    state.state !== "PRE_SELECTING_CHART_TYPE"
+  return state.state !== "INITIAL" && state.state !== "SELECTING_DATASET"
     ? state.chartConfig.filters[dimensionIri]
     : undefined;
 };
@@ -183,22 +184,33 @@ const reducer: Reducer<ConfiguratorState, ConfiguratorStateAction> = (
       return action.value.state === "INITIAL" ? emptyState : action.value;
 
     case "DATASET_SELECTED":
-      draft.state = "PRE_SELECTING_CHART_TYPE";
-      if (draft.state === "PRE_SELECTING_CHART_TYPE") {
-        const { dataSet } = action.value;
-        draft.dataSet = dataSet;
+      draft.state = "SELECTING_CHART_TYPE";
+      if (draft.state === "SELECTING_CHART_TYPE") {
+        draft.dataSet = action.value.dataSet;
+
+        // setWith(draft, action.value.path, action.value.value, Object);
+        const { dataSetMetadata } = action.value;
+
+        draft.chartConfig = {
+          chartType: "column",
+          fields: getInitialFields({
+            chartType: "column",
+            dimensions: dataSetMetadata.dimensions,
+            measures: dataSetMetadata.measures
+          }),
+          filters: {}
+        };
         draft.activeField = undefined;
+
+        deriveFiltersFromFields(draft.chartConfig, dataSetMetadata);
       }
       return draft;
-
     case "CHART_TYPE_PREVIEWED":
-      if (
-        draft.state === "SELECTING_CHART_TYPE" ||
-        draft.state === "PRE_SELECTING_CHART_TYPE"
-      ) {
-        draft.state = "SELECTING_CHART_TYPE";
+      draft.state = "SELECTING_CHART_TYPE";
+      if (draft.state === "SELECTING_CHART_TYPE") {
         // setWith(draft, action.value.path, action.value.value, Object);
         const { chartType, dataSetMetadata } = action.value;
+
         draft.chartConfig = {
           chartType,
           fields: getInitialFields({
@@ -210,9 +222,7 @@ const reducer: Reducer<ConfiguratorState, ConfiguratorStateAction> = (
         };
         draft.activeField = undefined;
 
-        if (draft.state === "SELECTING_CHART_TYPE") {
-          deriveFiltersFromFields(draft.chartConfig, dataSetMetadata);
-        }
+        deriveFiltersFromFields(draft.chartConfig, dataSetMetadata);
       }
       return draft;
 
@@ -227,18 +237,6 @@ const reducer: Reducer<ConfiguratorState, ConfiguratorStateAction> = (
       draft.state = "CONFIGURING_CHART";
       if (draft.state === "CONFIGURING_CHART") {
         draft.activeField = action.value;
-      }
-      return draft;
-
-    case "CHART_CONFIG_CHANGED":
-      draft.state = "CONFIGURING_CHART";
-      if (draft.state === "CONFIGURING_CHART") {
-        setWith(
-          draft.chartConfig,
-          action.value.path,
-          action.value.value,
-          Object
-        );
       }
       return draft;
 
