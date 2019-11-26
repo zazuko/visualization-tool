@@ -14,7 +14,8 @@
     "lint": "tsc --noEmit -p ./app",
     "locales:extract": "lingui extract",
     "locales:compile": "lingui compile",
-    "setup:dev": "yarn && yarn locales:compile && yarn db:migrate:dev"
+    "setup:dev": "yarn && yarn locales:compile && yarn db:migrate:dev",
+    "export-map": "next build ./app && next export ./app"
   },
   "dependencies": {
     "@babel/standalone": "^7.6.2",

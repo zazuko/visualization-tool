@@ -10,6 +10,30 @@ module.exports = withBundleAnalyzer(
       // SPARQL_ENDPOINT: "https://ld.stadt-zuerich.ch/query"
     },
 
+    exportPathMap: async function(
+      defaultPathMap,
+      { dev, dir, outDir, distDir, buildId }
+    ) {
+      return {
+        "/de/map": {
+          page: "/[locale]/map",
+          query: { locale: "de" }
+        },
+        "/en/map": {
+          page: "/[locale]/map",
+          query: { locale: "en" }
+        },
+        "/fr/map": {
+          page: "/[locale]/map",
+          query: { locale: "fr" }
+        },
+        "/it/map": {
+          page: "/[locale]/map",
+          query: { locale: "it" }
+        }
+      };
+    },
+
     webpack(config, { dev, isServer, defaultLoaders }) {
       // Transpile ES6 modules from node_modules
       // ATTENTION: this does actually NOT WORK. Probably needs a different loader than the next-babel-loader (like e.g. vanilla babel-loader). Figure out later. Cf. https://github.com/facebook/create-react-app/blob/f36d61a5dbabd0266c65bcdb3061d8bf9334f752/packages/react-scripts/config/webpack.config.js#L444-L482
@@ -20,7 +44,6 @@ module.exports = withBundleAnalyzer(
       //     /node_modules/
       //   ]
       // });
-
 
       /* Enable source maps in production */
       if (!dev) {
