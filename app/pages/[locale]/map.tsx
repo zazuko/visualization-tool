@@ -11,9 +11,13 @@ import {
   MeasureWithMeta
 } from "../../domain";
 import { Loading } from "../../components/hint";
-import { Select } from "../../components/form";
-import { Box, Flex } from "rebass";
+import { Select, Checkbox } from "../../components/form";
+import { Box, Flex, Text } from "rebass";
 import { useResizeObserver } from "../../lib/use-resize-observer";
+import { DataTableRaw } from "../../components/datatableRaw";
+import { format } from "d3-format";
+
+const formatNumber = format(",.2f");
 
 const DEFAULT_CATEGORY = "http://elcom.zazuko.com/category/H4";
 const DEFAULT_MEASURE = "http://elcom.zazuko.com/attribute/total";
@@ -86,6 +90,7 @@ const Page = () => {
   const rd = useDataSetAndMetadata(
     "http://elcom.zazuko.com/dataset/municipality/electricityTariffs"
   );
+
   // Array.from(shapes.keys())
   //   .map(d => d.match(/\d+/g))
   //   .flat()
@@ -107,9 +112,15 @@ const Page = () => {
     Map<string, MunicipalityDatum>
   >(new Map());
 
+  const [tableVisibility, setTableVisibility] = React.useState(true);
+
   const updateMunicipality = React.useCallback((m: Municipality) => {
     setMunicipality(m);
   }, []);
+
+  const memoizedData = React.useMemo(() => {
+    return rd.data;
+  }, [rd.data]);
 
   const updateYear = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -131,6 +142,10 @@ const Page = () => {
     },
     []
   );
+
+  const updateTableVisibility = () => {
+    setTableVisibility(!tableVisibility);
+  };
 
   const [resizeRef, width, height] = useResizeObserver();
 
@@ -344,7 +359,7 @@ const Page = () => {
           variant="container.left"
           sx={{ height: "100%", display: "block" }}
         >
-          {rd.state === "loaded" ? (
+          {rd.state === "loaded" && memoizedData ? (
             <Flex
               flexDirection="column"
               padding={2}
@@ -352,8 +367,8 @@ const Page = () => {
               height="100%"
             >
               <div>
-                <h1>{rd.data.dataSet.labels[0].value} </h1>
-                {rd.data.dimensions
+                <h1>{memoizedData.dataSet.labels[0].value} </h1>
+                {memoizedData.dimensions
                   .filter(
                     d =>
                       /**
@@ -442,42 +457,77 @@ const Page = () => {
                 <Select
                   value={measure && measure.iri}
                   onChange={e => {
-                    const match = rd.data.measures.find(
+                    const match = memoizedData.measures.find(
                       d => d.component.iri.value === e.currentTarget.value
                     );
                     updateMeasure(match);
                   }}
-                  options={rd.data.measures.map(d => ({
+                  options={memoizedData.measures.map(d => ({
                     label: d.component.label.value,
                     value: d.component.iri.value
                   }))}
                 />
+                <div>
+                  <Checkbox
+                    checked={tableVisibility}
+                    label="Data table"
+                    // name="Zürich"
+                    onChange={updateTableVisibility}
+                    //value="Zürich"
+                  />
+                </div>
               </div>
+
               <Flex>
-                {municipality && (
-                  <div>
-                    <h3>
+                {!!municipality && (
+                  <Box width="100%">
+                    <Box variant="heading3" as="h3" mb={2}>
                       {municipality.observed.label}
                       {municipality.observed.count > 1 && "*"}
-                    </h3>
-                    <dl>
-                      <dt>total</dt>
-                      <dd>{municipality.observed.total}</dd>
-                      <dt>kev</dt>
-                      <dd>{municipality.observed.kev}</dd>
-                      <dt>gridusage</dt>
-                      <dd>{municipality.observed.gridusage}</dd>
-                      <dt>energy</dt>
-                      <dd>{municipality.observed.energy}</dd>
-                      <dt>fee</dt>
-                      <dd>{municipality.observed.fee}</dd>
-                    </dl>
+                    </Box>
+                    {memoizedData &&
+                      memoizedData.measures.map(({ component }) => {
+                        const key =
+                          getKeyByNestedValue(
+                            FIELDS,
+                            "componentIri",
+                            component.iri.value
+                          ) || "";
+
+                        const { observed } = municipality;
+
+                        // const val = key in observed ? observed[key] : "–";
+                        const val =
+                          key in observed
+                            ? ((observed as unknown) as Record<string, string>)[
+                                key
+                              ]
+                            : "–";
+
+                        return (
+                          <Flex
+                            key={component.iri.value}
+                            justifyContent="space-between"
+                            my={2}
+                          >
+                            <Box variant="">{component.label.value}</Box>
+                            <Text
+                              textAlign="right"
+                              fontWeight={true ? "lighter" : "bold"}
+                            >
+                              {typeof val === "number"
+                                ? formatNumber(val)
+                                : val}
+                            </Text>
+                          </Flex>
+                        );
+                      })}{" "}
                     {municipality.observed.count > 1 && (
                       <small>
                         (* aggregation of {municipality.observed.count} vendors)
                       </small>
                     )}
-                  </div>
+                  </Box>
                 )}
               </Flex>
             </Flex>
@@ -486,23 +536,27 @@ const Page = () => {
           )}
         </Box>
 
-        <div ref={resizeRef} style={{ width: "100%", height: "100%" }}>
+        <div
+          ref={resizeRef}
+          style={{ width: "100%", height: "100%", position: "relative" }}
+        >
           <Center>
             {width && (
               <React.Fragment>
-                {rd.state === "loaded" ? (
+                {rd.state === "loaded" && memoizedData ? (
                   <MapComponent
                     year={year}
                     setMunicipality={updateMunicipality}
-                    municipalities={municipalities}
                     setMunicipalities={updateMunicipalities}
                     highlightedMunicipality={municipality && municipality.id}
-                    dataset={rd.data}
+                    dataset={memoizedData}
                     spec={spec}
                     category={category}
+                    showTable={tableVisibility}
+                    height={height}
                   />
                 ) : (
-                  <MapStatic spec={spec} />
+                  <MapStatic spec={spec} showTable={tableVisibility} />
                 )}
               </React.Fragment>
             )}
@@ -520,20 +574,22 @@ const MapComponent = ({
   year,
   spec,
   highlightedMunicipality,
-  municipalities,
   setMunicipality,
   setMunicipalities,
   category,
-  dataset
+  dataset,
+  showTable,
+  height
 }: {
   year: string;
   category: string;
   spec: Spec;
   highlightedMunicipality: string | undefined;
-  municipalities: Map<string, MunicipalityDatum>;
   setMunicipality: (m: Municipality) => void;
   setMunicipalities: (m: Map<string, MunicipalityDatum>) => void;
   dataset: DataSetMetadata;
+  showTable: boolean;
+  height: number;
 }) => {
   const filters = React.useMemo(() => {
     return {
@@ -558,6 +614,7 @@ const MapComponent = ({
 
   const observationReady = observations.state === "loaded";
   const obsData = observations.data;
+
   const onViewCreated = React.useCallback(
     (view: View) => {
       view.addEventListener("click", function(event, item) {
@@ -624,23 +681,81 @@ const MapComponent = ({
   });
 
   return (
-    <div
-      style={{
-        opacity: observationReady ? 1 : 0.5,
-        transition: ".4s opacity",
-        overflow: "hidden"
-      }}
-      ref={ref}
-    />
+    <React.Fragment>
+      <div
+        style={{
+          opacity: showTable ? 0 : observationReady ? 1 : 0.5,
+          display: showTable ? "none" : "initial",
+          transition: ".4s opacity",
+          overflow: "hidden"
+        }}
+        ref={ref}
+      />
+      {showTable && obsData && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            background: "white",
+            maxHeight: "100vh",
+            minWidth: "100%",
+            overflow: "scroll"
+          }}
+        >
+          <DataTableRaw
+            dimensions={dataset.dimensions}
+            measures={dataset.measures}
+            chunkAmount={
+              height / 55 /** @FIXME rough approximation of how many rows fit */
+            }
+            filterKey="municipality"
+            rawObservations={obsData.sort((a, b) => {
+              const aLabel = a.municipality.label
+                ? a.municipality.label.value
+                : "";
+              const bLabel = b.municipality.label
+                ? b.municipality.label.value
+                : "";
+
+              if (aLabel < bLabel) {
+                return -1;
+              }
+              if (aLabel > bLabel) {
+                return 1;
+              }
+              return 0;
+            })}
+            lookUp={{
+              ...FIELDS,
+              stromnetzbetreiber: {
+                componentIri: "http://elcom.zazuko.com/attribute/provider"
+              },
+              kategorie: {
+                componentIri: "http://elcom.zazuko.com/attribute/category"
+              },
+              referenceYear: {
+                componentIri: "http://elcom.zazuko.com/attribute/year"
+              }
+            }}
+          />
+        </div>
+      )}
+    </React.Fragment>
   );
 };
 
-const MapStatic = ({ spec }: { spec: Spec }) => {
+const MapStatic = ({ spec, showTable }: { spec: Spec; showTable: boolean }) => {
   const [ref] = useVegaView({
     spec,
     renderer: "canvas"
   });
-  return <div style={{ opacity: 0.5, overflow: "hidden" }} ref={ref} />;
+  return (
+    <div
+      style={{ opacity: showTable ? 0 : 0.5, overflow: "hidden" }}
+      ref={ref}
+    />
+  );
 };
 
 export default () => (
