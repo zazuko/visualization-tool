@@ -59,7 +59,8 @@ export const Table = ({
     <Box
       as="table"
       sx={{
-        minWidth: "100%",
+        maxWidth: "100%",
+        width: "100%",
         borderCollapse: "collapse"
       }}
     >
@@ -103,7 +104,8 @@ export const Table = ({
                 scope="col"
                 key={header}
                 sx={{
-                  textAlign: componentType === "measure" ? "right" : "left"
+                  textAlign: componentType === "measure" ? "right" : "left",
+                  wordBreak: "break-word"
                 }}
               >
                 {header}
@@ -130,7 +132,8 @@ export const Table = ({
                     as="td"
                     variant="datatable.cell"
                     sx={{
-                      textAlign: componentType === "measure" ? "right" : "left"
+                      textAlign: componentType === "measure" ? "right" : "left",
+                      wordBreak: "break-word"
                     }}
                   >
                     {componentType === "measure"

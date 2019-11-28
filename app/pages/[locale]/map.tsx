@@ -699,7 +699,8 @@ const MapComponent = ({
             left: 0,
             background: "white",
             maxHeight: "100vh",
-            minWidth: "100%",
+            width: "100%",
+            maxWidth: "100%",
             overflow: "scroll"
           }}
         >
