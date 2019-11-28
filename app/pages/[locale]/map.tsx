@@ -112,7 +112,7 @@ const Page = () => {
     Map<string, MunicipalityDatum>
   >(new Map());
 
-  const [tableVisibility, setTableVisibility] = React.useState(true);
+  const [tableVisibility, setTableVisibility] = React.useState(false);
 
   const updateMunicipality = React.useCallback((m: Municipality) => {
     setMunicipality(m);
