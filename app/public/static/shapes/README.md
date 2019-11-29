@@ -1,3 +1,9 @@
+# Generating new maps
+
+It's probably a good idea to move the makefile to a separate folder and then validate each year
+before replacing the whole set. As nearly every year has a different file and folder structure,
+this process is unfortunately a bit tedious.
+
 # About the data
 
 - We're using level G1, which is recommended for resolutions around 1:300'000 to 1:600'000

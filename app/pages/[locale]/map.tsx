@@ -86,15 +86,14 @@ interface MeasureDatum {
 }
 
 const Page = () => {
-  const availableYears = ["2014", "2015", "2016", "2017", "2018", "2019"];
   const rd = useDataSetAndMetadata(
     "http://elcom.zazuko.com/dataset/municipality/electricityTariffs"
   );
 
-  // Array.from(shapes.keys())
-  //   .map(d => d.match(/\d+/g))
-  //   .flat()
-  //   .filter((x, i, a) => a.indexOf(x) === i);
+  const availableYears = Array.from(shapes.keys())
+    .map(d => d.match(/\d+/g))
+    .map(d => d && d[0])
+    .filter((x, i, a) => a.indexOf(x) === i);
 
   //#region STATE
   const [year, setYear] = React.useState<string>(
