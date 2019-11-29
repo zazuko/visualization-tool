@@ -73,7 +73,7 @@ export const Table = ({
                   Prev
                 </Button>
                 <Box p={2}>
-                  {chunkIndex} / {pageAmount}
+                  {chunkIndex + 1} / {Math.max(pageAmount + 1, 1)}
                 </Box>
                 <Button
                   onClick={paginate.next}
