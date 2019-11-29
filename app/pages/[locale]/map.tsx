@@ -423,8 +423,9 @@ const Page = () => {
                             {
                               label: d.component.label.value || "...",
                               value: ""
-                            },
-                            ...d.values
+                            }
+                          ].concat(
+                            d.values
                               .sort((a, b) => {
                                 if (!isMunicipalityDimension) {
                                   return 0;
@@ -448,7 +449,7 @@ const Page = () => {
                                     )
                                   : false
                               }))
-                          ]}
+                          )}
                         />
                       </div>
                     );
@@ -624,7 +625,7 @@ const MapComponent = ({
         switch (name) {
           case "municipality":
             view.signal("highlight", { iri: item.datum.iri });
-            setMunicipality({ ...item.datum, id: item.datum.iri });
+            setMunicipality(Object.assign(item.datum, { id: item.datum.iri }));
         }
       });
 
@@ -727,8 +728,7 @@ const MapComponent = ({
               }
               return 0;
             })}
-            lookUp={{
-              ...FIELDS,
+            lookUp={Object.assign(FIELDS, {
               stromnetzbetreiber: {
                 componentIri: "http://elcom.zazuko.com/attribute/provider"
               },
@@ -738,7 +738,7 @@ const MapComponent = ({
               referenceYear: {
                 componentIri: "http://elcom.zazuko.com/attribute/year"
               }
-            }}
+            })}
           />
         </div>
       )}
