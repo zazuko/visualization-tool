@@ -30,7 +30,7 @@ export const ChartPreview = ({ dataSetIri }: { dataSetIri: string }) => {
         {(state.state === "SELECTING_CHART_TYPE" ||
           state.state === "CONFIGURING_CHART" ||
           state.state === "DESCRIBING_CHART" ||
-          state.state === "PUBLISHED") && (
+          state.state === "PUBLISHING") && (
           <>
             <Text variant="heading2" mb={2}>
               {state.meta.title[locale] === ""
@@ -90,6 +90,16 @@ export const ChartPreview = ({ dataSetIri }: { dataSetIri: string }) => {
             // FIXME: use "source" instead of "contact" when the API is fixed
             dataSet.extraMetadata.get("contact")!.value
           }`}
+        </Text>
+        <Text
+          variant="meta"
+          sx={{
+            color: "monochrome.600",
+            alignSelf: "flex-end"
+          }}
+        >
+          <Trans>Dataset</Trans>
+          {`: ${dataSet.labels[0].value}`}
         </Text>
       </Flex>
     );

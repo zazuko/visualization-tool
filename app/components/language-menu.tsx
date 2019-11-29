@@ -12,10 +12,11 @@ export const LanguageMenu = () => {
           <CurrentPageLink locale={locale} passHref>
             <Link
               hrefLang={locale}
-              variant="header.languageLink"
-              sx={{
-                bg: locale === currentLocale ? "monochrome.500" : "transparent"
-              }}
+              variant={
+                locale === currentLocale
+                  ? "header.languageLink.active"
+                  : "header.languageLink.normal"
+              }
             >
               {locale}
             </Link>

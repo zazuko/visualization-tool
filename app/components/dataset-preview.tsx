@@ -3,6 +3,7 @@ import { Box, Text } from "rebass";
 import { Loading } from "./hint";
 import { useDataSetAndMetadata } from "../domain";
 import { DataTable } from "./datatable";
+import { Trans } from "@lingui/macro";
 
 export interface Preview {
   iri: string;
@@ -32,6 +33,18 @@ export const DataSetPreview = ({ dataSetIri }: { dataSetIri: string }) => {
             measures={measures}
           />
         </Box>
+        <Text
+          variant="table"
+          color="monochrome.600"
+          mt={4}
+          sx={{
+            width: "100%",
+            textAlign: "center",
+            fontFamily: "frutigerLight"
+          }}
+        >
+          <Trans>Showing first 10 rows</Trans>
+        </Text>
       </Box>
     );
   } else {

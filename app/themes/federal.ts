@@ -192,15 +192,13 @@ export const theme: Theme = {
       fontSize: [1, 2, 2]
     }
   },
-
   buttons: {
     primary: {
       bg: "primary.base",
       color: "monochrome.100",
       borderRadius: "default",
-      width: "100%",
+      width: ["100%", "auto"],
       minWidth: 160,
-      maxWidth: 300,
       p: 3,
       fontFamily: "frutigerRegular",
       fontSize: [3, 3, 3],
@@ -349,6 +347,52 @@ export const theme: Theme = {
         cursor: "initial",
         bg: "muted"
       }
+    },
+    publishAction: {
+      display: "flex",
+      alignItems: "center",
+      color: "primary.base",
+      bg: "transparent",
+      border: "none",
+      borderRadius: "default",
+      mr: 4,
+      mt: [2, 4],
+      pr: 2,
+      pl: 0,
+      py: [2, 3],
+      fontFamily: "frutigerRegular",
+      fontSize: [3, 3, 3],
+      transition: "background-color .2s",
+      cursor: "pointer",
+      ":hover": {
+        color: "primary.hover"
+      },
+      ":active": {
+        color: "primary.active"
+      },
+      ":disabled": {
+        cursor: "initial",
+        color: "primary.disabled"
+      }
+    },
+    iconButton: {
+      background: "transparent",
+      color: "monochrome.600",
+      bg: "monochrome.200",
+      border: "none",
+      cursor: "pointer",
+      ":hover": {
+        bg: "monochrome.300",
+        color: "monochrome.700"
+      },
+      ":active": {
+        bg: "monochrome.400",
+        color: "monochrome.800"
+      },
+      ":disabled": {
+        cursor: "initial",
+        color: "monochrome.300"
+      }
     }
   },
   // All variants except ^ buttons ^
@@ -367,8 +411,11 @@ export const theme: Theme = {
       logo: {
         order: [2, 1],
         alignItems: ["center", "flex-start"],
+        cursor: "pointer",
         "& > h1": {
-          pl: [0, 6]
+          pl: [0, 6],
+          textDecoration: "none",
+          color: "monochrome.700"
         }
       },
       logoImgMobile: {
@@ -379,27 +426,37 @@ export const theme: Theme = {
       },
       logoImgDesktop: {
         display: ["none", "block"],
-        pr: 7,
-        width: 448,
+        pr: 6,
         borderRightWidth: "1px",
         borderRightStyle: "solid",
         borderRightColor: "monochrome.300"
       },
       languageList: {
         listStyle: "none",
-        pr: 2,
-        py: 2,
-        width: "100%",
+        p: [2, 0],
+        ml: [0, "auto"],
+        width: ["100%", "auto"],
+        // flexGrow: 1,
         bg: ["monochrome.300", "transparent"],
         order: [1, 2],
         justifyContent: "flex-end"
       },
-      languageListItem: { mr: 2 },
+      languageListItem: { ml: 1, p: 0 },
       languageLink: {
-        p: 1,
-        textTransform: "uppercase",
-        textDecoration: "none",
-        color: "monochrome.700"
+        normal: {
+          variant: "text.paragraph2",
+          fontSize: 3,
+          lineHeight: 3,
+          p: 1,
+          textTransform: "uppercase",
+          textDecoration: "none",
+          color: "monochrome.700",
+          bg: "transparent"
+        },
+        active: {
+          variant: "variants.header.languageLink.normal",
+          bg: ["monochrome.500", "monochrome.300"]
+        }
       }
     },
 
@@ -431,7 +488,8 @@ export const theme: Theme = {
         height: "24px",
         mb: 1,
         borderRadius: "circle",
-        fontSize: 4
+        fontSize: 3,
+        fontFamily: "frutigerRegular"
       },
       past: {
         variant: "variants.step.basic",
@@ -468,8 +526,8 @@ export const theme: Theme = {
         variant: "variants.container.root",
         bg: "monochrome.100",
         boxShadow: "primary",
-        width: "100%",
-        minHeight: 600,
+        width: "auto",
+        minHeight: [50, 100, 500],
         borderWidth: "1px",
         borderStyle: "solid",
         borderColor: "monochrome.300"
@@ -546,6 +604,7 @@ export const theme: Theme = {
     },
     success: {
       variant: "variants.hint",
+      width: "auto",
       mb: 4,
       p: 4,
       color: "success.base",
@@ -597,6 +656,71 @@ export const theme: Theme = {
         borderBottomStyle: "solid"
       },
       cell: { px: 2, py: 3, minWidth: 128 }
+    },
+
+    publishActionOverlay: {
+      zIndex: 10,
+      display: ["block", "none"],
+      bg: "monochrome.900",
+      opacity: 0.25,
+      width: "100vw",
+      height: "100vh",
+      position: "fixed",
+      top: 0,
+      left: 0,
+      pointerEvents: "none"
+    },
+    publishActionModal: {
+      position: "fixed",
+      bottom: 4,
+      left: 4,
+      right: 4,
+
+      zIndex: 12,
+      py: 2,
+      px: 4,
+      bg: "monochrome.100",
+      boxShadow: "primary",
+      borderRadius: "default",
+
+      "@media screen and (min-width: 62em)": {
+        mt: 2,
+        bottom: "unset",
+        left: "unset",
+        right: "unset",
+        position: "absolute",
+        width: 340,
+        maxWidth: 340,
+        borderWidth: "1px",
+        borderStyle: "solid",
+        borderColor: "monochrome.500"
+      }
+    },
+    iconLink: {
+      ml: 4,
+      color: "primary.base",
+      "&:disabled": {
+        color: "primary.disabled"
+      },
+      "&:hover": {
+        color: "primary.hover"
+      },
+      "&:active": {
+        color: "primary.active"
+      },
+      "&:visited": {
+        color: "primary.base"
+      }
+    },
+    iFrameCode: {
+      color: "monochrome.700",
+      fontSize: 4,
+      minWidth: 160,
+      overflowX: "scroll",
+      borderRadius: 0,
+      borderWidth: "1px",
+      borderStyle: "solid",
+      borderColor: "monochrome.500"
     }
   }
 };
@@ -646,7 +770,7 @@ export const globalStyles = `
   }
 
   *:focus {
-    outline: 4px solid #333333;
+    outline: 3px solid #333333;
   }
 
   fieldset {
