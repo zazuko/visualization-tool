@@ -90,15 +90,24 @@ const Page = () => {
     "http://elcom.zazuko.com/dataset/municipality/electricityTariffs"
   );
 
-  const availableYears = Array.from(shapes.keys())
+  const availableGeoYears = Array.from(shapes.keys())
     .map(d => d.match(/\d+/g))
     .map(d => d && d[0])
-    .filter((x, i, a) => a.indexOf(x) === i);
+    .filter((x, i, a) => a.indexOf(x) === i)
+    .sort();
+
+  const latestGeoYear = availableGeoYears[availableGeoYears.length - 1];
 
   //#region STATE
   const [year, setYear] = React.useState<string>(
-    availableYears[availableYears.length - 1] || "2019"
+    latestGeoYear ? (+latestGeoYear + 1).toString() : "2020"
   );
+
+  /**
+   * The map material always refers to the last year.
+   */
+  const [geoYear, setGeoYear] = React.useState<string>(latestGeoYear || "2019");
+
   const [category, setCategory] = React.useState<string>(DEFAULT_CATEGORY);
   const [measure, setMeasure] = React.useState<MeasureDatum | undefined>(
     undefined
@@ -124,7 +133,9 @@ const Page = () => {
   const updateYear = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       setMunicipality(undefined);
+      const prevYear = +e.currentTarget.value - 1;
       setYear(e.currentTarget.value);
+      setGeoYear(prevYear.toString());
     },
     []
   );
@@ -178,9 +189,9 @@ const Page = () => {
   //#endregion
   //#region SPEC
   const spec: Spec = React.useMemo(() => {
-    const lakes = shapes.get(`./${year}/ch-lakes.json`);
-    const cantons = shapes.get(`./${year}/ch-cantons.json`);
-    const municipalities = shapes.get(`./${year}/ch-municipalities.json`);
+    const lakes = shapes.get(`./${geoYear}/ch-lakes.json`);
+    const cantons = shapes.get(`./${geoYear}/ch-cantons.json`);
+    const municipalities = shapes.get(`./${geoYear}/ch-municipalities.json`);
 
     return {
       $schema: "https://vega.github.io/schema/vega/v5.json",
@@ -339,7 +350,7 @@ const Page = () => {
         }
       ]
     };
-  }, [height, measure, width, year]);
+  }, [geoYear, height, measure, width]);
   //#endregion
 
   return (
@@ -450,7 +461,11 @@ const Page = () => {
                                 label: v.label.value || v.value.value,
                                 value: v.value.value || v.label.value,
                                 disabled: isYearDimension
-                                  ? !availableYears.includes(v.value.value)
+                                  ? !availableGeoYears.includes(
+                                      (
+                                        +v.value.value - 1
+                                      ).toString() /** Verify there is a map for the previous year */
+                                    )
                                   : isMunicipalityDimension
                                   ? !municipalities.has(
                                       v.value.value || v.label.value
