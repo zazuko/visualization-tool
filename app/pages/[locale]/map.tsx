@@ -123,6 +123,7 @@ const Page = () => {
 
   const updateYear = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      setMunicipality(undefined);
       setYear(e.currentTarget.value);
     },
     []
@@ -130,6 +131,7 @@ const Page = () => {
 
   const updateCategory = React.useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+      setMunicipality(undefined);
       setCategory(e.currentTarget.value);
     },
     []
@@ -268,8 +270,9 @@ const Page = () => {
         {
           name: "color",
           type: "quantize",
-          domain: measure ? [measure.min, measure.max] : [0, 0],
-          range: { scheme: "yelloworangered", count: 5 }
+          domain: measure ? { data: "metrics", field: measure.lookup } : [0, 0],
+          range: { scheme: "lightmulti", count: 5 },
+          reverse: false
         }
       ],
       marks: [
@@ -291,13 +294,13 @@ const Page = () => {
             update: {
               fill: measure
                 ? {
-                    signal: `highlight.iri === datum.observed.iri ? "#008F85": isValid(datum.observed['${measure.lookup}']) ? scale('color', datum.observed['${measure.lookup}']) : '#EFEFEF'`
+                    signal: `highlight.iri === datum.observed.iri ? "#888888": isValid(datum.observed['${measure.lookup}']) ? scale('color', datum.observed['${measure.lookup}']) : '#EFEFEF'`
                   }
                 : { value: "#EFEFEF" }
             },
             hover: {
               fill: {
-                signal: `highlight.iri === datum.observed.iri ? '#008F85' : '#6ECD9C'`
+                signal: `highlight.iri === datum.observed.iri ? '#888888' : '#CCCCCC'`
               }
             }
           },
@@ -426,7 +429,8 @@ const Page = () => {
                           options={[
                             {
                               label: d.component.label.value || "...",
-                              value: ""
+                              value: "",
+                              disabled: true
                             }
                           ].concat(
                             d.values
@@ -491,42 +495,62 @@ const Page = () => {
                       {municipality.observed.count > 1 && "*"}
                     </Box>
                     {memoizedData &&
-                      memoizedData.measures.map(({ component }) => {
-                        const key =
-                          getKeyByNestedValue(
-                            FIELDS,
-                            "componentIri",
-                            component.iri.value
-                          ) || "";
+                      memoizedData.measures
+                        .sort(a =>
+                          a.component.iri.value.includes("total") ? 0 : -1
+                        )
+                        .map(({ component }) => {
+                          const key =
+                            getKeyByNestedValue(
+                              FIELDS,
+                              "componentIri",
+                              component.iri.value
+                            ) || "";
 
-                        const { observed } = municipality;
+                          const { observed } = municipality;
 
-                        // const val = key in observed ? observed[key] : "–";
-                        const val =
-                          key in observed
-                            ? ((observed as unknown) as Record<string, string>)[
-                                key
-                              ]
-                            : "–";
+                          // const val = key in observed ? observed[key] : "–";
+                          const val =
+                            key in observed
+                              ? ((observed as unknown) as Record<
+                                  string,
+                                  string
+                                >)[key]
+                              : "–";
 
-                        return (
-                          <Flex
-                            key={component.iri.value}
-                            justifyContent="space-between"
-                            my={2}
-                          >
-                            <Box variant="">{component.label.value}</Box>
-                            <Text
-                              textAlign="right"
-                              fontWeight={true ? "lighter" : "bold"}
+                          const isTotal = component.iri.value.includes("total");
+
+                          const fontWeight =
+                            isTotal || (measure && measure.lookup === key)
+                              ? "bold"
+                              : "lighter";
+
+                          return (
+                            <Flex
+                              key={component.iri.value}
+                              justifyContent="space-between"
+                              my={2}
+                              color={
+                                isTotal || (measure && measure.lookup === key)
+                                  ? "#333"
+                                  : "#888"
+                              }
+                              pt={isTotal ? 2 : 0}
+                              sx={{
+                                borderTop: isTotal ? "1px solid #ccc" : "none"
+                              }}
                             >
-                              {typeof val === "number"
-                                ? formatNumber(val)
-                                : val}
-                            </Text>
-                          </Flex>
-                        );
-                      })}{" "}
+                              <Text variant="" fontWeight={fontWeight}>
+                                {component.label.value}
+                              </Text>
+                              <Text textAlign="right" fontWeight={fontWeight}>
+                                {typeof val === "number"
+                                  ? formatNumber(val)
+                                  : val}
+                              </Text>
+                            </Flex>
+                          );
+                        })}{" "}
                     {municipality.observed.count > 1 && (
                       <small>
                         (* aggregation of {municipality.observed.count} vendors)
