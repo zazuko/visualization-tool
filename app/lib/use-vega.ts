@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { formatLocale, parse, Spec, timeFormatLocale, View, Warn } from "vega";
 import { d3FormatLocales, d3TimeFormatLocales } from "../locales/locales";
 import { useLocale } from "./use-locale";
+import * as vegaTooltip from "vega-tooltip";
 
 /**
  * Creates a Vega view with the correct locale.
@@ -28,6 +29,7 @@ export const useVegaView = ({
 
     const createView = async () => {
       try {
+        const handler = new vegaTooltip.Handler();
         const view = new View(parse(spec), {
           logLevel: Warn,
           renderer: renderer,
@@ -37,7 +39,7 @@ export const useVegaView = ({
 
         onViewCreated && onViewCreated(view);
 
-        await view.runAsync();
+        await view.tooltip(handler.call).runAsync();
 
         // console.table("vegadata", view.data("table"));
       } catch (error) {

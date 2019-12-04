@@ -279,6 +279,11 @@ const Page = () => {
           name: "municipality",
           encode: {
             enter: {
+              tooltip: {
+                signal: measure
+                  ? ` datum.observed.label ? { title: datum.observed.label,'${measure.lookup}': format(datum.observed['${measure.lookup}'], ".2f")} : ""`
+                  : ""
+              },
               strokeWidth: { value: 0.5 },
               stroke: { value: "#CCCCCC" },
               fill: { value: "#CCCCCC" }
