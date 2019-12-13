@@ -406,20 +406,24 @@ const Page = () => {
                       d.component.iri.value ===
                       "http://elcom.zazuko.com/attribute/municipality";
 
+                    const val = isCategoryDimension
+                      ? category
+                      : isYearDimension
+                      ? year
+                      : isMunicipalityDimension
+                      ? municipality && municipality.id
+                        ? municipality.id
+                        : ""
+                      : "";
+
+                    console.log(municipality, val);
+
                     const label = d.component.label.value;
                     return (
                       <div key={label + index}>
                         <Select
                           label={label}
-                          value={
-                            isCategoryDimension
-                              ? category
-                              : isYearDimension
-                              ? year
-                              : isMunicipalityDimension
-                              ? municipality && municipality.id
-                              : undefined
-                          }
+                          value={val}
                           onChange={e => {
                             if (isYearDimension) {
                               updateYear(e);
