@@ -8,22 +8,22 @@ import {
   useEffect
 } from "react";
 import { Reducer, useImmerReducer } from "use-immer";
+import { DataCubeMetadata } from "../graphql/types";
+import { unreachableError } from "../lib/unreachable";
+import { useLocale } from "../lib/use-locale";
 import { createChartId } from "./chart-id";
+import { getFieldComponentIris, getInitialConfig } from "./charts";
 import {
-  ConfiguratorState,
-  ConfiguratorStatePublishing,
-  FilterValue,
   ChartConfig,
   ChartType,
+  ConfiguratorState,
+  ConfiguratorStatePublishing,
   ConfiguratorStateSelectingDataSet,
   decodeConfiguratorState,
-  GenericFields,
-  FilterValueMultiValues
+  FilterValue,
+  FilterValueMultiValues,
+  GenericFields
 } from "./config-types";
-import { getInitialConfig, getFieldComponentIris } from "./charts";
-import { useLocale } from "../lib/use-locale";
-import { unreachableError } from "../lib/unreachable";
-import { DataCubeMetadata } from "../graphql/types";
 
 export type ConfiguratorStateAction =
   | { type: "INITIALIZED"; value: ConfiguratorState }
@@ -520,20 +520,27 @@ const ConfiguratorStateContext = createContext<
   [ConfiguratorState, Dispatch<ConfiguratorStateAction>] | undefined
 >(undefined);
 
+type ConfiguratorStateProps = {
+  chartId: string | undefined;
+  children?: ReactNode;
+  initialState?: ConfiguratorState;
+  handlePublish?: (state: ConfiguratorStatePublishing) => Promise<void>;
+  handleReplaceNew?: () => void;
+  handlePushChartId?: (chartId: string) => void;
+};
+
 const ConfiguratorStateProviderInternal = ({
   chartId,
   children,
-  initialState = INITIAL_STATE
-}: {
-  key: string;
-  chartId: string;
-  children?: ReactNode;
-  initialState?: ConfiguratorState;
-}) => {
+  initialState = INITIAL_STATE,
+  handlePublish,
+  handleReplaceNew,
+  handlePushChartId
+}: ConfiguratorStateProps) => {
   const locale = useLocale();
   const stateAndDispatch = useImmerReducer(reducer, initialState);
   const [state, dispatch] = stateAndDispatch;
-  const { asPath, push, replace, query } = useRouter();
+  const { query } = useRouter();
 
   // Re-initialize state on page load
   useEffect(() => {
@@ -541,7 +548,7 @@ const ConfiguratorStateProviderInternal = ({
 
     const initialize = async () => {
       try {
-        if (chartId === "new" && query.from) {
+        if (chartId === undefined && query.from) {
           const config = await fetch(`/api/config/${query.from}`).then(result =>
             result.json()
           );
@@ -556,7 +563,7 @@ const ConfiguratorStateProviderInternal = ({
             };
           }
         }
-        if (chartId !== "new") {
+        if (chartId) {
           const storedState = window.localStorage.getItem(
             getLocalStorageKey(chartId)
           );
@@ -574,7 +581,7 @@ const ConfiguratorStateProviderInternal = ({
               window.localStorage.removeItem(getLocalStorageKey(chartId));
             }
           } else {
-            replace(`/[locale]/create/[chartId]`, `/${locale}/create/new`);
+            handleReplaceNew?.();
           }
         }
       } catch {
@@ -583,7 +590,7 @@ const ConfiguratorStateProviderInternal = ({
       }
     };
     initialize();
-  }, [dispatch, chartId, replace, initialState, query, locale]);
+  }, [dispatch, chartId, initialState, query, locale, handleReplaceNew]);
 
   useEffect(() => {
     try {
@@ -591,16 +598,13 @@ const ConfiguratorStateProviderInternal = ({
         case "CONFIGURING_CHART":
         case "DESCRIBING_CHART":
         case "SELECTING_CHART_TYPE":
-          if (chartId === "new") {
+          if (chartId === undefined) {
             const newChartId = createChartId();
             window.localStorage.setItem(
               getLocalStorageKey(newChartId),
               JSON.stringify(state)
             );
-            push(
-              `/[locale]/create/[chartId]`,
-              `/${locale}/create/${newChartId}`
-            );
+            handlePushChartId?.(newChartId);
           } else {
             // Store current state in localstorage
             window.localStorage.setItem(
@@ -610,27 +614,22 @@ const ConfiguratorStateProviderInternal = ({
           }
           return;
         case "PUBLISHING":
-          (async () => {
-            try {
-              const result = await save(state);
-              await push(
-                {
-                  pathname: `/[locale]/v/[chartId]`,
-                  query: { publishSuccess: true }
-                },
-                `/${locale}/v/${result.key}`
-              );
-            } catch (e) {
-              console.error(e);
-              dispatch({ type: "PUBLISH_FAILED" });
-            }
-          })();
+          if (handlePublish) {
+            (async () => {
+              try {
+                await handlePublish(state);
+              } catch (e) {
+                console.error(e);
+                dispatch({ type: "PUBLISH_FAILED" });
+              }
+            })();
+          }
           return;
       }
     } catch (e) {
       console.error(e);
     }
-  }, [state, dispatch, chartId, push, asPath, locale, query.from]);
+  }, [state, dispatch, chartId, locale, query.from, handlePublish]);
 
   return (
     <ConfiguratorStateContext.Provider value={stateAndDispatch}>
@@ -639,41 +638,13 @@ const ConfiguratorStateProviderInternal = ({
   );
 };
 
-type ReturnVal = {
-  key: string;
-};
-const save = async (state: ConfiguratorStatePublishing): Promise<ReturnVal> => {
-  return fetch("/api/config", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      dataSet: state.dataSet,
-      meta: state.meta,
-      chartConfig: state.chartConfig
-    })
-  }).then(res => res.json());
-};
-
-export const ConfiguratorStateProvider = ({
-  chartId,
-  children,
-  initialState
-}: {
-  chartId: string;
-  children?: ReactNode;
-  initialState?: ConfiguratorState;
-}) => {
+export const ConfiguratorStateProvider = (props: ConfiguratorStateProps) => {
   // Ensure that the state is reset by using the `chartId` as `key`
   return (
     <ConfiguratorStateProviderInternal
-      key={chartId}
-      chartId={chartId}
-      initialState={initialState}
-    >
-      {children}
-    </ConfiguratorStateProviderInternal>
+      {...props}
+      key={props.chartId ?? "new"}
+    />
   );
 };
 
