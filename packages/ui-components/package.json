@@ -1,0 +1,12 @@
+{
+  "name": "@visualize-admin/ui-components",
+  "version": "0.6.1",
+  "main": "dist/ui-components.cjs.js",
+  "module": "dist/ui-components.esm.js",
+  "dependencies": {
+    "d3-scale": "^3.2.2"
+  },
+  "peerDependencies": {
+    "react": "^16.13.1"
+  }
+}
