@@ -23,7 +23,7 @@ import {
   FilterValue,
   FilterValueMultiValues,
   GenericFields,
-} from "./config-types";
+} from "@visualize-admin/core";
 import { mapColorsToComponentValuesIris } from "./helpers";
 
 export type ConfiguratorStateAction =

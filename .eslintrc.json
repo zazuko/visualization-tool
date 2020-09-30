@@ -2,6 +2,7 @@
   "extends": "react-app",
 
   "rules": {
+    "no-redeclare": "off",
     "react/react-in-jsx-scope": "off",
     "@typescript-eslint/no-angle-bracket-type-assertion": "off",
     "@typescript-eslint/no-explicit-any": "warn"

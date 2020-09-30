@@ -1,0 +1,11 @@
+{
+  "name": "@visualize-admin/plugin-bar-chart",
+  "version": "0.6.1",
+  "main": "dist/plugin-bar-chart.cjs.js",
+  "module": "dist/plugin-bar-chart.esm.js",
+  "dependencies": {},
+  "peerDependencies": {
+    "react": "16",
+    "io-ts": "2"
+  }
+}
