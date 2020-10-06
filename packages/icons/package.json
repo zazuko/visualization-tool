@@ -3,6 +3,7 @@
   "version": "0.6.1",
   "main": "dist/icons.cjs.js",
   "module": "dist/icons.esm.js",
+  "sideEffects": false,
   "dependencies": {},
   "peerDependencies": {
     "react": "^16.13.1"
