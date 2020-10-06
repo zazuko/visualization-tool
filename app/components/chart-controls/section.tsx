@@ -1,7 +1,7 @@
 import { Box, Flex, Text } from "@theme-ui/components";
 import * as React from "react";
 import { ElementType, ReactNode } from "react";
-import { Icon, IconName } from "../../icons";
+import { Icon, IconName } from "@visualize-admin/icons";
 import { useTheme } from "../../themes";
 
 export const ControlSection = ({

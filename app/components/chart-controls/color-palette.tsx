@@ -10,7 +10,7 @@ import {
   getPalette,
   mapColorsToComponentValuesIris,
 } from "../../domain/helpers";
-import { Icon } from "../../icons";
+import { Icon } from "@visualize-admin/icons";
 import { Label } from "../form";
 import { DimensionFieldsWithValuesFragment } from "../../graphql/query-hooks";
 import { useCallback } from "react";

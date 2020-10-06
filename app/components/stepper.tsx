@@ -4,7 +4,7 @@ import {
   useConfiguratorState,
   ConfiguratorStateAction,
 } from "../domain/configurator-state";
-import { Icon } from "../icons";
+import { Icon } from "@visualize-admin/icons";
 import { Trans } from "@lingui/macro";
 import { useTheme } from "../themes";
 

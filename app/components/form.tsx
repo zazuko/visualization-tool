@@ -12,7 +12,7 @@ import {
 } from "@theme-ui/components";
 import * as React from "react";
 import { FieldProps, Option } from "../domain/config-form";
-import { Icon } from "../icons";
+import { Icon } from "@visualize-admin/icons";
 
 export const Label = ({
   label,

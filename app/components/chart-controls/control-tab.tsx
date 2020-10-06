@@ -4,7 +4,7 @@ import * as React from "react";
 import { FieldProps } from "../../domain/config-form";
 import { getFieldLabel, getIconName } from "../../domain/helpers";
 import { ComponentFieldsFragment } from "../../graphql/query-hooks";
-import { Icon, IconName } from "../../icons";
+import { Icon, IconName } from "@visualize-admin/icons";
 import { ReactNode } from "react";
 
 export const ControlTab = ({

@@ -4,7 +4,7 @@ import { Box, Button, Flex, Input, Link, Text } from "@theme-ui/components";
 import * as clipboard from "clipboard-polyfill/text";
 import Downshift, { DownshiftState, StateChangeOptions } from "downshift";
 import React, { ReactNode, useEffect, useState } from "react";
-import { Icon, IconName } from "../icons";
+import { Icon, IconName } from "@visualize-admin/icons";
 import { useLocale } from "../lib/use-locale";
 import { IconLink } from "./links";
 

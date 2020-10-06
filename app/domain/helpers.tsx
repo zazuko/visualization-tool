@@ -23,7 +23,7 @@ import {
 import { timeFormat, timeParse } from "d3-time-format";
 import * as React from "react";
 import { DimensionFieldsWithValuesFragment } from "../graphql/query-hooks";
-import { IconName } from "../icons";
+import { IconName } from "@visualize-admin/icons";
 import { useLocale } from "../lib/use-locale";
 import {
   d3TimeFormatLocales,

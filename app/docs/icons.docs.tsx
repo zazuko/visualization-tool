@@ -1,6 +1,6 @@
 import * as React from "react";
 import { markdown, TableSpecimen } from "catalog";
-import { Icon, Icons, IconName } from "../icons";
+import { Icon, Icons, IconName } from "@visualize-admin/icons";
 
 export default () => markdown`
 

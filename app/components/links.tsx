@@ -3,7 +3,7 @@ import Link, { LinkProps } from "next/link";
 import { useLocale } from "../lib/use-locale";
 import * as qs from "querystring";
 import { useRouter } from "next/router";
-import { IconName, Icon } from "../icons";
+import { IconName, Icon } from "@visualize-admin/icons";
 import { Link as UILink } from "@theme-ui/components";
 const createDynamicRouteProps = ({
   pathname,

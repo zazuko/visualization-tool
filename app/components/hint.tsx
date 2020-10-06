@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Flex, Text, Box } from "@theme-ui/components";
 import { Trans } from "@lingui/macro";
-import { Icon, IconName } from "../icons";
+import { Icon, IconName } from "@visualize-admin/icons";
 import { keyframes } from "@emotion/core";
 
 export const Error = ({ children }: { children: React.ReactNode }) => (

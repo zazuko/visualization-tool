@@ -22,6 +22,7 @@
     "@reach/visually-hidden": "^0.11.1",
     "@theme-ui/components": "^0.3.1",
     "@visualize-admin/core": "^0.6.1",
+    "@visualize-admin/icons": "^0.6.1",
     "@zazuko/query-rdf-data-cube": "^0.7.0",
     "apollo-server-micro": "^2.17.0",
     "catalog": "^4.0.1-canary.2",

@@ -3,7 +3,7 @@ import { Box, Text, Flex } from "@theme-ui/components";
 import { Step1 } from "./step1";
 import { Step2 } from "./step2";
 import { Step3 } from "./step3";
-import { Icon } from "../../icons";
+import { Icon } from "@visualize-admin/icons";
 import { HomepageSection } from "./generic";
 
 export const Tutorial = ({

@@ -1,33 +1,22 @@
 import { Box, Button, Flex, Text } from "@theme-ui/components";
 import React from "react";
-import { IconAreaChart } from "../../icons/ic-area-chart";
-import { IconBarChart } from "../../icons/ic-bar-chart";
-import { IconColumnChart } from "../../icons/ic-column-chart";
-import { IconFilter } from "../../icons/ic-filter";
-import { IconLineChart } from "../../icons/ic-line-chart";
-import { IconScatterplot } from "../../icons/ic-scatterplot";
-import { IconPieChart } from "../../icons/ic-pie-chart";
-import { IconSegment } from "../../icons/ic-segment";
-import { IconTable } from "../../icons/ic-table";
-import { IconText } from "../../icons/ic-text";
-import { IconX } from "../../icons/ic-x";
-import { IconY } from "../../icons/ic-y";
+import { Icon, IconName } from "@visualize-admin/icons";
 import { HintRed } from "../hint";
 import { LocalizedLink } from "../links";
 
-const ICONS = [
-  { Icon: IconX, color: "#375172" },
-  { Icon: IconScatterplot, color: "#32B8DF" },
-  { Icon: IconColumnChart, color: "#F9C16E" },
-  { Icon: IconPieChart, color: "#F38B3C" },
-  { Icon: IconAreaChart, color: "#008F85" },
-  { Icon: IconLineChart, color: "#C97146" },
-  { Icon: IconTable, color: "#928D88" },
-  { Icon: IconY, color: "#8D5A54" },
-  { Icon: IconSegment, color: "#8D5A54" },
-  { Icon: IconFilter, color: "#375172" },
-  { Icon: IconText, color: "#32B8DF" },
-  { Icon: IconBarChart, color: "#008F85" },
+const ICONS: { name: IconName; color: string }[] = [
+  { name: "x", color: "#375172" },
+  { name: "scatterplot", color: "#32B8DF" },
+  { name: "column", color: "#F9C16E" },
+  { name: "pie", color: "#F38B3C" },
+  { name: "area", color: "#008F85" },
+  { name: "line", color: "#C97146" },
+  { name: "table", color: "#928D88" },
+  { name: "y", color: "#8D5A54" },
+  { name: "segment", color: "#8D5A54" },
+  { name: "filter", color: "#375172" },
+  { name: "text", color: "#32B8DF" },
+  { name: "bar", color: "#008F85" },
 ];
 
 export const Intro = ({
@@ -82,7 +71,7 @@ export const Intro = ({
           ],
         }}
       >
-        {ICONS.map(({ Icon, color }, i) => {
+        {ICONS.map(({ name, color }, i) => {
           return (
             <Box
               key={i}
@@ -101,7 +90,7 @@ export const Intro = ({
                     : "center center",
               }}
             >
-              <Icon color={color} size={24} />
+              <Icon name={name} color={color} size={24} />
             </Box>
           );
         })}

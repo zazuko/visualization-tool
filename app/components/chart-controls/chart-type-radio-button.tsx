@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Button, Text } from "@theme-ui/components";
 import { FieldProps } from "../../domain/config-form";
-import { Icon } from "../../icons";
+import { Icon } from "@visualize-admin/icons";
 import { getIconName, getFieldLabel } from "../../domain/helpers";
 
 export const ChartTypeSelectionButton = ({
