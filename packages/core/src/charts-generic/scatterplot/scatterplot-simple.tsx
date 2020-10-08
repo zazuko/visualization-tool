@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useTheme } from "../../../themes";
+import { useTheme } from "../../themes";
 import { useChartState } from "../use-chart-state";
 import { ScatterplotState } from "./scatterplot-state";
 

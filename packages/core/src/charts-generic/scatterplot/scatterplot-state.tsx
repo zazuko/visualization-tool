@@ -2,14 +2,15 @@ import { max, min, ascending } from "d3-array";
 import { ScaleLinear, scaleLinear, ScaleOrdinal, scaleOrdinal } from "d3-scale";
 import * as React from "react";
 import { ReactNode } from "react";
-import { Observation, ScatterPlotFields } from "../../../domain";
+import { ScatterPlotFields } from "../../../domain";
+import { Observation } from "../../data-types";
 import { getPalette, mkNumber, useFormatNumber } from "../../../domain/helpers";
 import { Tooltip } from "../interaction/tooltip";
 import { Bounds, Observer, useWidth } from "../use-width";
 import { ChartContext, ChartProps } from "../use-chart-state";
 import { InteractionProvider } from "../use-interaction";
 import { TooltipScatterplot } from "../interaction/tooltip-content";
-import { estimateTextWidth } from "../../../lib/estimate-text-width";
+import { estimateTextWidth } from "../lib/estimate-text-width";
 import { LEFT_MARGIN_OFFSET } from "./constants";
 
 export interface ScatterplotState {

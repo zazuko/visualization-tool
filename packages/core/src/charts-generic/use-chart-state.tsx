@@ -1,5 +1,6 @@
 import { createContext, useContext } from "react";
-import { ChartFields, Observation } from "../../domain";
+import { Observation } from "../data-types";
+import { ChartFields } from "../config-types";
 import { ColumnsState } from "./columns/columns-state";
 import { LinesState } from "./lines/lines-state";
 import { AreasState } from "./areas/areas-state";

@@ -1,4 +1,4 @@
-import { useTheme } from "../../themes";
+import { useTheme } from "../themes";
 
 export const useChartTheme = () => {
   const theme = useTheme();

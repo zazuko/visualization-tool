@@ -191,3 +191,25 @@ export const decodeConfiguratorState = (
     )
   );
 };
+
+const SegmentField = t.intersection([
+  t.type({
+    componentIri: t.string,
+  }),
+  t.type({
+    type: t.union([t.literal("stacked"), t.literal("grouped")]),
+  }),
+  t.type({ palette: t.string }),
+  t.partial({
+    colorMapping: ColorMapping,
+  }),
+  t.partial({
+    sorting: t.type({
+      sortingType: SortingType,
+      sortingOrder: SortingOrder,
+    }),
+  }),
+]);
+
+export type SegmentField = t.TypeOf<typeof SegmentField>;
+export type SegmentFields = Record<string, SegmentField | undefined>;

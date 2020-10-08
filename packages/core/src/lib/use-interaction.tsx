@@ -6,7 +6,7 @@ import React, {
   useContext,
   useReducer,
 } from "react";
-import { Observation } from "../../domain";
+import { Observation } from "../data-types";
 
 export interface InteractionElement {
   visible: boolean;

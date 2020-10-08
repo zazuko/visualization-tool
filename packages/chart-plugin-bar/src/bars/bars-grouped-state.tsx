@@ -1,3 +1,10 @@
+import {
+  Observation,
+  ObservationValue,
+  sortByIndex,
+  SortingOrder,
+  SortingType,
+} from "@visualize-admin/core";
 import { ascending, descending, group, max, min, rollup, sum } from "d3-array";
 import {
   scaleBand,
@@ -9,22 +16,16 @@ import {
 } from "d3-scale";
 import * as React from "react";
 import { ReactNode, useCallback, useMemo } from "react";
-import {
-  BarFields,
-  SortingOrder,
-  SortingType,
-} from "../../../domain/config-types";
-import { Observation, ObservationValue } from "../../../domain/data";
 import { getPalette, mkNumber } from "../../../domain/helpers";
-import { sortByIndex } from "../../../lib/array";
+import { ChartContext, ChartProps } from "../use-chart-state";
+import { InteractionProvider } from "../use-interaction";
+import { Bounds, Observer, useWidth } from "@visualize-admin/core";
+
 import {
   BAR_HEIGHT,
   BAR_SPACE_ON_TOP,
   BOTTOM_MARGIN_OFFSET,
 } from "./constants";
-import { ChartContext, ChartProps } from "../use-chart-state";
-import { InteractionProvider } from "../use-interaction";
-import { Bounds, Observer, useWidth } from "../use-width";
 
 export interface GroupedBarsState {
   chartType: string;

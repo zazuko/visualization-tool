@@ -1,20 +1,15 @@
-import { Literal, NamedNode } from "rdf-js";
+import { Literal } from "rdf-js";
 import {
   DimensionFieldsWithValuesFragment,
   ComponentFieldsFragment,
 } from "../graphql/query-hooks";
 import { DimensionType } from "./chart-config-ui-options";
-
-export type RawObservationValue = {
-  value: Literal | NamedNode;
-  label?: Literal;
-};
-
-export type RawObservation = Record<string, RawObservationValue>;
-
-export type ObservationValue = string | number | boolean | Date;
-
-export type Observation = Record<string, ObservationValue>;
+import {
+  Observation,
+  ObservationValue,
+  RawObservation,
+  RawObservationValue,
+} from "@visualize-admin/core";
 
 const xmlSchema = "http://www.w3.org/2001/XMLSchema#";
 const parseRDFLiteral = (value: Literal): ObservationValue => {

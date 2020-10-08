@@ -1,7 +1,7 @@
 import { IconName } from "@visualize-admin/icons";
 import { ReactNode } from "react";
 import { ChartConfig, ChartType, SortingOrder } from "./config-types";
-import { Dimension } from "./data-types";
+import type { Dimension } from "./data-types";
 
 export type ChartPlugin = {
   name: string;
