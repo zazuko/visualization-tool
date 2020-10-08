@@ -1,3 +1,3 @@
 export * from "./config-types";
-
-export const VERSION = "x";
+export * from "./chart-plugin-types";
+export * from "./themes";

@@ -83,7 +83,7 @@ export type GenericField = t.TypeOf<typeof GenericField>;
 
 export type GenericFields = Record<string, GenericField | undefined>;
 
-// TODO
+// TODO: Can we make fields more specific for chart types? How to do that from "plugins"?
 const ChartConfig = t.intersection([
   t.type({
     chartType: t.string,

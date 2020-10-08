@@ -1,14 +1,17 @@
 import { t, Trans } from "@lingui/macro";
 import { I18n } from "@lingui/react";
 import { Box, Flex } from "@theme-ui/components";
-import get from "lodash/get";
-import React, { useCallback, useEffect, useRef } from "react";
 import {
   ChartType,
   ConfiguratorStateConfiguringChart,
+  SortingType,
+} from "@visualize-admin/core";
+import { IconName } from "@visualize-admin/icons";
+import get from "lodash/get";
+import React, { useCallback, useEffect, useRef } from "react";
+import {
   getDimensionsByDimensionType,
   getFieldComponentIri,
-  SortingType,
   useConfiguratorState,
 } from "../domain";
 import {
@@ -24,7 +27,6 @@ import {
   useDataCubeMetadataWithComponentValuesQuery,
 } from "../graphql/query-hooks";
 import { DataCubeMetadata } from "../graphql/types";
-import { IconName } from "@visualize-admin/icons";
 import { useLocale } from "../lib/use-locale";
 import { ColorPalette } from "./chart-controls/color-palette";
 import {

@@ -6,7 +6,7 @@ import {
 } from "../domain/configurator-state";
 import { Icon } from "@visualize-admin/icons";
 import { Trans } from "@lingui/macro";
-import { useTheme } from "../themes";
+import { useTheme } from "@visualize-admin/core";
 
 export type StepStatus = "past" | "current" | "future";
 type StepState =
