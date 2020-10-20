@@ -3,8 +3,8 @@ import get from "lodash/get";
 import { ChangeEvent, InputHTMLAttributes, useCallback } from "react";
 import { DataCubeMetadata } from "../graphql/types";
 import { Locales } from "../locales/locales";
-import { getFieldComponentIri } from "./charts";
-import { ChartType } from "./config-types";
+import { getFieldComponentIri } from "@visualize-admin/core";
+import { ChartType } from "@visualize-admin/core";
 import { useConfiguratorState } from "./configurator-state";
 
 // interface FieldProps {

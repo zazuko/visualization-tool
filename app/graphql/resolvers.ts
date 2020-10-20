@@ -1,4 +1,5 @@
 import { literal } from "@rdfjs/data-model";
+import { Filters, parseObservationValue } from "@visualize-admin/core";
 import {
   DataCube as RDFDataCube,
   DataCubeEntryPoint,
@@ -8,7 +9,6 @@ import {
 import { descending } from "d3-array";
 import fuzzaldrin from "fuzzaldrin-plus";
 import { GraphQLJSONObject } from "graphql-type-json";
-import { Filters, parseObservationValue } from "../domain";
 import { SPARQL_ENDPOINT } from "../domain/env";
 import { locales, parseLocaleString } from "../locales/locales";
 import {

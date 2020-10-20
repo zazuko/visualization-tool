@@ -1,4 +1,4 @@
-import { ChartType, SortingOrder } from "./config-types";
+import { ChartType, SortingOrder } from "@visualize-admin/core";
 
 /**
  * This module controls chart controls displayed in the UI.

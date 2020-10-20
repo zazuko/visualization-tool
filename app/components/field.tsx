@@ -2,7 +2,8 @@ import { t } from "@lingui/macro";
 import { I18n } from "@lingui/react";
 import { Box, Flex } from "@theme-ui/components";
 import React, { ChangeEvent, useCallback } from "react";
-import { FilterValueSingle, useConfiguratorState } from "../domain";
+import { useConfiguratorState } from "../domain";
+import { FilterValueSingle } from "@visualize-admin/core";
 import {
   FIELD_VALUE_NONE,
   Option,

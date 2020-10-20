@@ -1,3 +1,15 @@
+import {
+  ChartConfig,
+  ChartType,
+  ConfiguratorState,
+  ConfiguratorStatePublishing,
+  ConfiguratorStateSelectingDataSet,
+  decodeConfiguratorState,
+  FilterValue,
+  FilterValueMultiValues,
+  GenericFields,
+  getFieldComponentIris,
+} from "@visualize-admin/core";
 import setWith from "lodash/setWith";
 import { useRouter } from "next/router";
 import {
@@ -12,18 +24,7 @@ import { DataCubeMetadata } from "../graphql/types";
 import { unreachableError } from "../lib/unreachable";
 import { useLocale } from "../lib/use-locale";
 import { createChartId } from "./chart-id";
-import { getFieldComponentIris, getInitialConfig } from "./charts";
-import {
-  ChartConfig,
-  ChartType,
-  ConfiguratorState,
-  ConfiguratorStatePublishing,
-  ConfiguratorStateSelectingDataSet,
-  decodeConfiguratorState,
-  FilterValue,
-  FilterValueMultiValues,
-  GenericFields,
-} from "@visualize-admin/core";
+import { getInitialConfig } from "./charts";
 import { mapColorsToComponentValuesIris } from "./helpers";
 
 export type ConfiguratorStateAction =

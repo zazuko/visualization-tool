@@ -4,7 +4,7 @@ import {
   ChartConfig,
   ConfiguratorStateConfiguringChart,
   getFieldComponentIris,
-} from "../domain";
+} from "@visualize-admin/core";
 import { chartConfigOptionsUISpec } from "../domain/chart-config-ui-options";
 import { useDataCubeMetadataWithComponentValuesQuery } from "../graphql/query-hooks";
 import { DataCubeMetadata } from "../graphql/types";

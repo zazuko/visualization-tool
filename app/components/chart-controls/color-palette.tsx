@@ -1,19 +1,17 @@
 import { Trans } from "@lingui/macro";
 import { Box, Button, Flex, Text } from "@theme-ui/components";
+import { ConfiguratorStateConfiguringChart } from "@visualize-admin/core";
+import { Icon } from "@visualize-admin/icons";
 import { useSelect } from "downshift";
 import * as React from "react";
-import {
-  useConfiguratorState,
-  ConfiguratorStateConfiguringChart,
-} from "../../domain";
+import { useCallback } from "react";
+import { useConfiguratorState } from "../../domain";
 import {
   getPalette,
   mapColorsToComponentValuesIris,
 } from "../../domain/helpers";
-import { Icon } from "@visualize-admin/icons";
-import { Label } from "../form";
 import { DimensionFieldsWithValuesFragment } from "../../graphql/query-hooks";
-import { useCallback } from "react";
+import { Label } from "../form";
 
 const palettes: Array<{
   label: string;

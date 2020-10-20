@@ -1,7 +1,10 @@
 import { DataCubeMetadata } from "../graphql/types";
 import { unreachableError } from "../lib/unreachable";
-import { ChartConfig, ChartType, GenericFields } from "./config-types";
-import { getCategoricalDimensions, getTimeDimensions } from "./data";
+import { ChartConfig, ChartType } from "@visualize-admin/core";
+import {
+  getCategoricalDimensions,
+  getTimeDimensions,
+} from "@visualize-admin/core";
 import { mapColorsToComponentValuesIris } from "./helpers";
 
 export const getInitialConfig = ({
@@ -137,14 +140,4 @@ export const getPossibleChartType = ({
     possibles = null;
   }
   return possibles;
-};
-
-export const getFieldComponentIris = (fields: GenericFields) => {
-  return new Set(
-    Object.values(fields).flatMap((f) => (f ? [f.componentIri] : []))
-  );
-};
-
-export const getFieldComponentIri = (fields: GenericFields, field: string) => {
-  return fields[field]?.componentIri;
 };

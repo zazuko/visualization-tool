@@ -3,9 +3,12 @@
   "version": "0.6.1",
   "main": "dist/core.cjs.js",
   "module": "dist/core.esm.js",
+  "sideEffects": false,
   "dependencies": {
+    "@types/rdf-js": "^4.0.0",
     "fp-ts": "^2.8.3",
-    "io-ts": "^2.2.10"
+    "io-ts": "^2.2.10",
+    "rdf-js": "^1.0.2"
   },
   "peerDependencies": {
     "react": "^16.13.1"

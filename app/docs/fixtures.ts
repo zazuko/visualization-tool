@@ -1,4 +1,5 @@
-import { ConfiguratorState, ColumnFields } from "../domain";
+import { ConfiguratorState } from "@visualize-admin/core";
+import { ColumnFields } from "../domain";
 import { ComponentFieldsFragment } from "../graphql/query-hooks";
 
 export const states: ConfiguratorState[] = [

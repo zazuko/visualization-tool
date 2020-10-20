@@ -1,6 +1,4 @@
-import { Observation } from "../domain/data";
-import { RawObservation } from "../domain/data";
-import { Filters } from "../domain/config-types";
+import { Filters, Observation, RawObservation } from "@visualize-admin/core";
 import {
   GraphQLResolveInfo,
   GraphQLScalarType,
@@ -8,9 +6,9 @@ import {
 } from "graphql";
 import {
   ResolvedDataCube,
-  ResolvedObservationsQuery,
-  ResolvedMeasure,
   ResolvedDimension,
+  ResolvedMeasure,
+  ResolvedObservationsQuery,
 } from "./shared-types";
 export type Maybe<T> = T | null;
 export type Exact<T extends { [key: string]: unknown }> = {

@@ -9,22 +9,19 @@ import {
 } from "d3-scale";
 import * as React from "react";
 import { ReactNode, useCallback, useMemo } from "react";
-import {
-  BarFields,
-  SortingOrder,
-  SortingType,
-} from "../../../domain/config-types";
-import { Observation } from "../../../domain/data";
-import { getPalette, mkNumber } from "../../../domain/helpers";
+import { SortingOrder, SortingType } from "@visualize-admin/core";
+import { BarFields } from "../types";
+import { Observation } from "@visualize-admin/core";
+import { getPalette, mkNumber } from "@visualize-admin/core";
 import {
   BAR_HEIGHT,
   BOTTOM_MARGIN_OFFSET,
   LEFT_MARGIN_OFFSET,
   BAR_SPACE_ON_TOP,
 } from "./constants";
-import { ChartContext, ChartProps } from "../use-chart-state";
-import { InteractionProvider } from "../use-interaction";
-import { Bounds, Observer, useWidth } from "../use-width";
+import { ChartContext, ChartProps } from "@visualize-admin/core";
+import { InteractionProvider } from "@visualize-admin/core";
+import { Bounds, Observer, useWidth } from "@visualize-admin/core";
 
 export interface BarsState {
   chartType: "bar";

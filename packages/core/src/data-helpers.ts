@@ -1,15 +1,17 @@
 import { Literal } from "rdf-js";
-import {
-  DimensionFieldsWithValuesFragment,
-  ComponentFieldsFragment,
-} from "../graphql/query-hooks";
-import { DimensionType } from "./chart-config-ui-options";
+import { GenericFields } from "./config-types";
+
 import {
   Observation,
   ObservationValue,
   RawObservation,
   RawObservationValue,
-} from "@visualize-admin/core";
+} from "./data-types";
+
+type GqlDimension = {
+  __typename: string;
+  iri: string;
+};
 
 const xmlSchema = "http://www.w3.org/2001/XMLSchema#";
 const parseRDFLiteral = (value: Literal): ObservationValue => {
@@ -86,15 +88,12 @@ export const parseObservations = (
 /**
  * @fixme use metadata to filter time dimension!
  */
-export const getTimeDimensions = (
-  dimensions: DimensionFieldsWithValuesFragment[]
-) => dimensions.filter((d) => d.__typename === "TemporalDimension");
+export const getTimeDimensions = (dimensions: GqlDimension[]) =>
+  dimensions.filter((d) => d.__typename === "TemporalDimension");
 /**
  * @fixme use metadata to filter categorical dimension!
  */
-export const getCategoricalDimensions = (
-  dimensions: DimensionFieldsWithValuesFragment[]
-) =>
+export const getCategoricalDimensions = (dimensions: GqlDimension[]) =>
   dimensions.filter(
     (d) =>
       d.__typename === "NominalDimension" || d.__typename === "OrdinalDimension"
@@ -105,10 +104,20 @@ export const getDimensionsByDimensionType = ({
   dimensions,
   measures,
 }: {
-  dimensionTypes: DimensionType[];
-  dimensions: DimensionFieldsWithValuesFragment[];
-  measures: ComponentFieldsFragment[];
+  dimensionTypes: string[];
+  dimensions: GqlDimension[];
+  measures: GqlDimension[];
 }) =>
   [...measures, ...dimensions].filter((component) =>
     dimensionTypes.includes(component.__typename)
   );
+
+export const getFieldComponentIris = (fields: GenericFields) => {
+  return new Set(
+    Object.values(fields).flatMap((f) => (f ? [f.componentIri] : []))
+  );
+};
+
+export const getFieldComponentIri = (fields: GenericFields, field: string) => {
+  return fields[field]?.componentIri;
+};

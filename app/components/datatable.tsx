@@ -1,6 +1,6 @@
 import { Box } from "@theme-ui/components";
 import * as React from "react";
-import { Observation } from "../domain";
+import { Observation } from "@visualize-admin/core";
 import {
   ComponentFieldsFragment,
   useDataCubePreviewObservationsQuery,

@@ -1,6 +1,6 @@
 import { Box } from "@theme-ui/components";
 import React, { useEffect, useRef } from "react";
-import { ConfiguratorStateDescribingChart } from "../domain";
+import { ConfiguratorStateDescribingChart } from "@visualize-admin/core";
 import { getFieldLabel } from "../domain/helpers";
 import { locales } from "../locales/locales";
 import {

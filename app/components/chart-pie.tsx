@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { Box } from "theme-ui";
 import { PieFields } from "../domain";
-import { PieConfig } from "../domain/config-types";
+import { PieConfig } from "@visualize-admin/core";
 import { Observation } from "../domain/data";
 import {
   ComponentFieldsFragment,
@@ -10,7 +10,10 @@ import {
 import { useLocale } from "../lib/use-locale";
 import { A11yTable } from "./a11y-table";
 import { Tooltip } from "./charts-generic/interaction/tooltip";
-import { ChartContainer, ChartSvg } from "./charts-generic/containers/containers";
+import {
+  ChartContainer,
+  ChartSvg,
+} from "./charts-generic/containers/containers";
 import { LegendColor } from "./charts-generic/legends/color";
 import { Pie } from "./charts-generic/pie/pie";
 import { PieChart } from "./charts-generic/pie/pie-state";

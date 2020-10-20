@@ -1,18 +1,14 @@
 import { Trans } from "@lingui/macro";
 import { Button } from "@theme-ui/components";
+import { ChartConfig, Observation } from "@visualize-admin/core";
 import { csvFormat } from "d3-dsv";
 import { saveAs } from "file-saver";
 import React, { memo, ReactNode, useMemo } from "react";
-import { ChartConfig, ChartFields, Observation } from "../domain";
 import {
   ComponentFieldsFragment,
   useDataCubeObservationsQuery,
 } from "../graphql/query-hooks";
 import { useLocale } from "../lib/use-locale";
-
-export interface ChartFieldsWithLabel {
-  [x: string]: string;
-}
 
 export const DataDownload = memo(
   ({
@@ -41,7 +37,6 @@ export const DataDownload = memo(
           observations={observations.data}
           dimensions={dimensions}
           measures={measures}
-          fields={chartConfig.fields}
         />
       );
     } else {
@@ -56,13 +51,11 @@ const DataDownloadInner = memo(
     observations,
     dimensions,
     measures,
-    fields,
   }: {
     title: string;
     observations: Observation[];
     dimensions: ComponentFieldsFragment[];
     measures: ComponentFieldsFragment[];
-    fields: ChartFields;
   }) => {
     const forCsvData = useMemo(() => {
       const columns = [...dimensions, ...measures];
