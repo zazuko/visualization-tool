@@ -1,0 +1,11 @@
+{
+  "name": "@visualize-admin/chart-plugin-area",
+  "version": "0.6.1",
+  "main": "dist/chart-plugin-area.cjs.js",
+  "module": "dist/chart-plugin-area.esm.js",
+  "dependencies": {},
+  "peerDependencies": {
+    "react": "16",
+    "io-ts": "2"
+  }
+}
