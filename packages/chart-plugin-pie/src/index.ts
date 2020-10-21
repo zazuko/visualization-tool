@@ -1,4 +1,5 @@
-import type { ChartPlugin } from "@visualize-admin/core";
+import { ChartPlugin, getCategoricalDimensions } from "@visualize-admin/core";
+import { mapColorsToComponentValuesIris } from "@visualize-admin/core/src/chart-helpers";
 
 export const chartPlugin: ChartPlugin = {
   name: "bar",
@@ -7,45 +8,41 @@ export const chartPlugin: ChartPlugin = {
   isValidConfig: () => true,
   getInitialConfig: ({ dimensions, measures }) => {
     return {
-      chartType: "bar",
+      chartType: "pie",
       filters: {},
       fields: {
-        x: { componentIri: measures[0].iri },
-        y: {
-          componentIri: dimensions[0].iri,
-          sorting: { sortingType: "byDimensionLabel", sortingOrder: "asc" },
+        y: { componentIri: measures[0].iri },
+        segment: {
+          componentIri: getCategoricalDimensions(dimensions)[0].iri,
+          palette: "category10",
+          sorting: { sortingType: "byMeasure", sortingOrder: "asc" },
+          colorMapping: mapColorsToComponentValuesIris({
+            palette: "category10",
+            component: getCategoricalDimensions(dimensions)[0],
+          }),
         },
       },
     };
   },
   configOptions: {
-    chartType: "bar",
+    chartType: "pie",
     encodings: [
       {
         field: "y",
-        optional: false,
-        values: ["TemporalDimension", "NominalDimension", "OrdinalDimension"],
-        filters: true,
-      },
-      {
-        field: "x",
         optional: false,
         values: ["Measure"],
         filters: false,
       },
       {
         field: "segment",
-        optional: true,
+        optional: false,
         values: ["TemporalDimension", "NominalDimension", "OrdinalDimension"],
         filters: true,
         sorting: [
+          { sortingType: "byMeasure", sortingOrder: ["asc", "desc"] },
           { sortingType: "byDimensionLabel", sortingOrder: ["asc", "desc"] },
-          { sortingType: "byTotalSize", sortingOrder: ["asc", "desc"] },
         ],
-        options: [
-          { field: "chartSubType", values: ["grouped"] },
-          { field: "color", values: ["palette"] },
-        ],
+        options: [{ field: "color", values: ["palette"] }],
       },
     ],
   },

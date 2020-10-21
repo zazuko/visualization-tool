@@ -19,7 +19,7 @@ import {
 } from "../../../domain/helpers";
 import { sortByIndex } from "../../../lib/array";
 import { estimateTextWidth } from "../../../lib/estimate-text-width";
-import { useTheme } from "../../../themes";
+import { useTheme } from "@visualize-admin/core";
 import { Tooltip } from "../interaction/tooltip";
 import { LEFT_MARGIN_OFFSET } from "./constants";
 import { ChartContext, ChartProps } from "../use-chart-state";

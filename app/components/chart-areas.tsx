@@ -1,7 +1,7 @@
 import React, { memo } from "react";
 import { Box } from "theme-ui";
 import { AreaConfig, AreaFields } from "@visualize-admin/core";
-import { Observation } from "../domain/data";
+import { Observation } from "@visualize-admin/core";
 import { isNumber } from "../domain/helpers";
 import {
   ComponentFieldsFragment,

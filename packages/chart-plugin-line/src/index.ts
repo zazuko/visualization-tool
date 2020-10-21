@@ -1,4 +1,4 @@
-import type { ChartPlugin } from "@visualize-admin/core";
+import { ChartPlugin, getTimeDimensions } from "@visualize-admin/core";
 
 export const chartPlugin: ChartPlugin = {
   name: "bar",
@@ -7,45 +7,36 @@ export const chartPlugin: ChartPlugin = {
   isValidConfig: () => true,
   getInitialConfig: ({ dimensions, measures }) => {
     return {
-      chartType: "bar",
+      chartType: "line",
       filters: {},
       fields: {
-        x: { componentIri: measures[0].iri },
-        y: {
-          componentIri: dimensions[0].iri,
-          sorting: { sortingType: "byDimensionLabel", sortingOrder: "asc" },
+        x: {
+          componentIri: getTimeDimensions(dimensions)[0].iri,
         },
+        y: { componentIri: measures[0].iri },
       },
     };
   },
   configOptions: {
-    chartType: "bar",
+    chartType: "line",
     encodings: [
-      {
-        field: "y",
-        optional: false,
-        values: ["TemporalDimension", "NominalDimension", "OrdinalDimension"],
-        filters: true,
-      },
+      { field: "y", optional: false, values: ["Measure"], filters: false },
       {
         field: "x",
         optional: false,
-        values: ["Measure"],
-        filters: false,
+        values: ["TemporalDimension"],
+        filters: true,
       },
       {
         field: "segment",
         optional: true,
-        values: ["TemporalDimension", "NominalDimension", "OrdinalDimension"],
+        values: ["NominalDimension", "OrdinalDimension"],
         filters: true,
-        sorting: [
-          { sortingType: "byDimensionLabel", sortingOrder: ["asc", "desc"] },
-          { sortingType: "byTotalSize", sortingOrder: ["asc", "desc"] },
-        ],
-        options: [
-          { field: "chartSubType", values: ["grouped"] },
-          { field: "color", values: ["palette"] },
-        ],
+        // sorting: [
+        //   { sortingType: "byTotalSize", sortingOrder: ["asc", "desc"] },
+        //   { sortingType: "byDimensionLabel", sortingOrder: ["asc", "desc"] },
+        // ],
+        options: [{ field: "color", values: ["palette"] }],
       },
     ],
   },

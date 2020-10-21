@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useTheme } from "../../themes";
+import { useTheme } from "@visualize-admin/core";
 import { useChartState } from "../use-chart-state";
 import { ScatterplotState } from "./scatterplot-state";
 

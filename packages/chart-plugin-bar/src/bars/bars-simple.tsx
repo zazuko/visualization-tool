@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useTheme } from "../../../themes";
+import { useTheme } from "@visualize-admin/core";
 import { BAR_AXIS_OFFSET, BAR_HEIGHT, BAR_SPACE_ON_TOP } from "./constants";
 import { useChartState } from "../use-chart-state";
 import { useChartTheme } from "../use-chart-theme";

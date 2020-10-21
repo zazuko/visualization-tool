@@ -1,6 +1,6 @@
 import type { Literal, NamedNode } from "rdf-js";
 
-export type Dimension = { iri: string };
+export type Dimension = { __typename: string; iri: string };
 
 export type RawObservationValue = {
   value: Literal | NamedNode;

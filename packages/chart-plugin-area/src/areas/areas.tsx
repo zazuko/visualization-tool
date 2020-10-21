@@ -2,7 +2,7 @@ import { area } from "d3-shape";
 import * as React from "react";
 import { useChartState } from "../use-chart-state";
 import { AreasState } from "./areas-state";
-import { useTheme } from "../../../themes";
+import { useTheme } from "@visualize-admin/core";
 
 export const Areas = () => {
   const {

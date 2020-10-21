@@ -16,8 +16,9 @@ export type ChartPlugin = {
     measures: Dimension[];
   }) => ChartConfig;
   configOptions: ChartSpec;
-  previewComponent: () => ReactNode;
-  publishedComponent: () => ReactNode;
+  // TODO
+  previewComponent?: () => ReactNode;
+  publishedComponent?: () => ReactNode;
 };
 
 /**

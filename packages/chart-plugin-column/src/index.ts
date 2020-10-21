@@ -1,37 +1,36 @@
 import type { ChartPlugin } from "@visualize-admin/core";
 
 export const chartPlugin: ChartPlugin = {
-  name: "bar",
-  iconName: "bar",
+  name: "column",
+  iconName: "column",
   isPossibleChartType: (meta) => true,
   isValidConfig: () => true,
   getInitialConfig: ({ dimensions, measures }) => {
     return {
-      chartType: "bar",
+      chartType: "column",
       filters: {},
       fields: {
-        x: { componentIri: measures[0].iri },
-        y: {
+        x: {
           componentIri: dimensions[0].iri,
           sorting: { sortingType: "byDimensionLabel", sortingOrder: "asc" },
         },
+        y: { componentIri: measures[0].iri },
       },
     };
   },
   configOptions: {
-    chartType: "bar",
+    chartType: "column",
     encodings: [
-      {
-        field: "y",
-        optional: false,
-        values: ["TemporalDimension", "NominalDimension", "OrdinalDimension"],
-        filters: true,
-      },
+      { field: "y", optional: false, values: ["Measure"], filters: false },
       {
         field: "x",
         optional: false,
-        values: ["Measure"],
-        filters: false,
+        values: ["TemporalDimension", "NominalDimension", "OrdinalDimension"],
+        filters: true,
+        sorting: [
+          { sortingType: "byMeasure", sortingOrder: ["asc", "desc"] },
+          { sortingType: "byDimensionLabel", sortingOrder: ["asc", "desc"] },
+        ],
       },
       {
         field: "segment",
@@ -43,7 +42,7 @@ export const chartPlugin: ChartPlugin = {
           { sortingType: "byTotalSize", sortingOrder: ["asc", "desc"] },
         ],
         options: [
-          { field: "chartSubType", values: ["grouped"] },
+          { field: "chartSubType", values: ["stacked", "grouped"] },
           { field: "color", values: ["palette"] },
         ],
       },

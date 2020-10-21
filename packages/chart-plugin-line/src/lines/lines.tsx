@@ -3,7 +3,7 @@ import { useChartState } from "../use-chart-state";
 import { line } from "d3-shape";
 import { Observation } from "../../../domain";
 import { LinesState } from "./lines-state";
-import { useTheme } from "../../../themes";
+import { useTheme } from "@visualize-admin/core";
 
 export const Lines = () => {
   const {
