@@ -1,8 +1,13 @@
 import { Trans } from "@lingui/macro";
-import get from "lodash/get";
 import { useCallback, useMemo } from "react";
-import { Box, Button } from "theme-ui";
-import { getFilterValue, useConfiguratorState } from "..";
+import { Box, Button, Flex } from "theme-ui";
+import {
+  getFilterValue,
+  MultiFilterContextProvider,
+  useConfiguratorState,
+  useDimensionSelection,
+  useMultiFilterContext,
+} from "..";
 import { Loading } from "../../components/hint";
 import {
   useDimensionValuesQuery,
@@ -10,52 +15,28 @@ import {
 } from "../../graphql/query-hooks";
 import { useLocale } from "../../locales/use-locale";
 import { EditorIntervalBrush } from "../interactive-filters/editor-time-interval-brush";
-import { MultiFilterField, SingleFilterField } from "./field";
+import {
+  MultiFilterFieldCheckbox,
+  MultiFilterFieldColorPicker,
+  SingleFilterField,
+} from "./field";
 import {
   getTimeInterval,
   useTimeFormatLocale,
   useTimeFormatUnit,
 } from "./ui-helpers";
 
-type SelectionState = "SOME_SELECTED" | "NONE_SELECTED" | "ALL_SELECTED";
-
-const useDimensionSelection = (dimensionIri: string) => {
-  const [state, dispatch] = useConfiguratorState();
-
-  const selectAll = useCallback(() => {
-    dispatch({
-      type: "CHART_CONFIG_FILTER_RESET_MULTI",
-      value: {
-        dimensionIri,
-      },
-    });
-  }, [dispatch, dimensionIri]);
-
-  const selectNone = useCallback(() => {
-    dispatch({
-      type: "CHART_CONFIG_FILTER_SET_NONE_MULTI",
-      value: { dimensionIri },
-    });
-  }, [dispatch, dimensionIri]);
-
-  return useMemo(() => ({ selectAll, selectNone }), [selectAll, selectNone]);
-};
-
-const SelectionControls = ({
-  dimensionIri,
-  selectionState,
-}: {
-  dimensionIri: string;
-  selectionState: SelectionState;
-}) => {
+const SelectionControls = ({ dimensionIri }: { dimensionIri: string }) => {
   const { selectAll, selectNone } = useDimensionSelection(dimensionIri);
+  const { activeKeys, allValues } = useMultiFilterContext();
+
   return (
     <Box color="monochrome500">
       <Button
         onClick={selectAll}
         variant="inline"
         sx={{ mr: 2, mb: 4 }}
-        disabled={selectionState === "ALL_SELECTED"}
+        disabled={activeKeys.size === allValues.length}
       >
         <Trans id="controls.filter.select.all">Select all</Trans>
       </Button>
@@ -64,7 +45,7 @@ const SelectionControls = ({
         onClick={selectNone}
         variant="inline"
         sx={{ ml: 2, mb: 4 }}
-        disabled={selectionState === "NONE_SELECTED"}
+        disabled={activeKeys.size === 0}
       >
         <Trans id="controls.filter.select.none">Select none</Trans>
       </Button>
@@ -97,68 +78,41 @@ export const DimensionValuesMultiFilter = ({
       : [];
   }, [dimension?.values, locale]);
 
-  const activeFilter = dimension ? getFilterValue(state, dimension.iri) : null;
-  const isFilterActive: Set<string> = useMemo(() => {
-    if (!dimension) {
-      return new Set();
-    }
-    const activeKeys = activeFilter
-      ? activeFilter.type === "single"
-        ? [String(activeFilter.value)]
-        : activeFilter.type === "multi"
-        ? Object.keys(activeFilter.values)
-        : []
-      : [];
-    return new Set(activeKeys);
-  }, [dimension, activeFilter]);
-
-  const selectionState: SelectionState = !activeFilter
-    ? "ALL_SELECTED"
-    : isFilterActive.size === 0
-    ? "NONE_SELECTED"
-    : "SOME_SELECTED";
-
   if (data?.dataCubeByIri?.dimensionByIri) {
     return (
-      <>
-        <SelectionControls
-          dimensionIri={dimensionIri}
-          selectionState={selectionState}
-        />
-
+      <MultiFilterContextProvider dimensionData={dimension}>
+        <SelectionControls dimensionIri={dimensionIri} />
         {sortedDimensionValues.map((dv) => {
           if (state.state === "CONFIGURING_CHART") {
-            const path = colorConfigPath ? `${colorConfigPath}.` : "";
-
-            const color = get(
-              state,
-              `chartConfig.fields["${state.activeField}"].${path}colorMapping["${dv.value}"]`
-            );
-
             return (
-              <MultiFilterField
+              <Flex
                 key={dv.value}
-                dimensionIri={dimensionIri}
-                label={dv.label}
-                value={dv.value}
-                allValues={dimension?.values.map((d) => d.value) ?? []}
-                checked={
-                  selectionState === "ALL_SELECTED"
-                    ? true
-                    : selectionState === "SOME_SELECTED"
-                    ? !!isFilterActive.has(dv.value)
-                    : undefined
-                }
-                checkAction={selectionState === "NONE_SELECTED" ? "SET" : "ADD"}
-                color={color}
-                colorConfigPath={colorConfigPath}
-              />
+                sx={{
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 1,
+                  height: "2rem",
+                }}
+              >
+                <Box sx={{ maxWidth: "82%" }}>
+                  <MultiFilterFieldCheckbox
+                    dimensionIri={dimensionIri}
+                    label={dv.label}
+                    value={dv.value}
+                  />
+                </Box>
+                <MultiFilterFieldColorPicker
+                  dimensionIri={dimensionIri}
+                  value={dv.value}
+                  colorConfigPath={colorConfigPath}
+                />
+              </Flex>
             );
           } else {
             return null;
           }
         })}
-      </>
+      </MultiFilterContextProvider>
     );
   } else {
     return <Loading />;

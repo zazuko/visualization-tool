@@ -1,15 +1,18 @@
 import get from "lodash/get";
-import {
+import React, {
   ChangeEvent,
   InputHTMLAttributes,
   SyntheticEvent,
   useCallback,
+  useContext,
+  useMemo,
 } from "react";
 import { SelectProps } from "theme-ui";
 import { getFieldComponentIri } from "../charts";
+import { DimensionValuesQuery } from "../graphql/query-hooks";
 import { DataCubeMetadata } from "../graphql/types";
-import { ChartType } from "./config-types";
-import { useConfiguratorState } from "./configurator-state";
+import { ChartConfig, ChartType } from "./config-types";
+import { getFilterValue, useConfiguratorState } from "./configurator-state";
 import { FIELD_VALUE_NONE } from "./constants";
 
 // interface FieldProps {
@@ -114,6 +117,28 @@ export const useChartOptionSelectField = <ValueType extends {} = string>({
   };
 };
 
+export const useDimensionSelection = (dimensionIri: string) => {
+  const [state, dispatch] = useConfiguratorState();
+
+  const selectAll = useCallback(() => {
+    dispatch({
+      type: "CHART_CONFIG_FILTER_RESET_MULTI",
+      value: {
+        dimensionIri,
+      },
+    });
+  }, [dispatch, dimensionIri]);
+
+  const selectNone = useCallback(() => {
+    dispatch({
+      type: "CHART_CONFIG_FILTER_SET_NONE_MULTI",
+      value: { dimensionIri },
+    });
+  }, [dispatch, dimensionIri]);
+
+  return useMemo(() => ({ selectAll, selectNone }), [selectAll, selectNone]);
+};
+
 export const useChartOptionRadioField = ({
   field,
   path,
@@ -125,8 +150,8 @@ export const useChartOptionRadioField = ({
 }): FieldProps => {
   const [state, dispatch] = useConfiguratorState();
 
-  const onChange = useCallback<(e: ChangeEvent<HTMLInputElement>) => void>(
-    (e) => {
+  const onChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
       dispatch({
         type: "CHART_OPTION_CHANGED",
         value: {
@@ -338,6 +363,119 @@ export const useSingleFilterField = ({
     value: value ? value : stateValue,
     checked,
     onChange,
+  };
+};
+
+export const isMultiFilterFieldChecked = (
+  chartConfig: ChartConfig,
+  dimensionIri: string,
+  value: string
+) => {
+  const filter = chartConfig.filters[dimensionIri];
+  const fieldChecked =
+    filter?.type === "multi" ? filter.values?.[value] ?? false : false;
+
+  return fieldChecked || !filter;
+};
+
+const MultiFilterContext = React.createContext({
+  activeKeys: new Set() as Set<string>,
+  allValues: [] as string[],
+});
+
+export const useMultiFilterContext = () => {
+  return useContext(MultiFilterContext);
+};
+
+export const MultiFilterContextProvider = ({
+  dimensionData,
+  children,
+}: {
+  dimensionData: NonNullable<
+    DimensionValuesQuery["dataCubeByIri"]
+  >["dimensionByIri"];
+  children: React.ReactNode;
+}) => {
+  const [state] = useConfiguratorState();
+
+  const activeFilter = dimensionData
+    ? getFilterValue(state, dimensionData.iri)
+    : null;
+
+  const allValues = useMemo(() => {
+    return dimensionData?.values.map((d) => d.value) ?? [];
+  }, [dimensionData?.values]);
+
+  const activeKeys: Set<string> = useMemo(() => {
+    if (!dimensionData) {
+      return new Set();
+    }
+    const activeKeys = activeFilter
+      ? activeFilter.type === "single"
+        ? [String(activeFilter.value)]
+        : activeFilter.type === "multi"
+        ? Object.keys(activeFilter.values)
+        : []
+      : allValues;
+    return new Set(activeKeys);
+  }, [dimensionData, activeFilter, allValues]);
+
+  const ctx = useMemo(
+    () => ({
+      allValues,
+      activeKeys,
+    }),
+    [allValues, activeKeys]
+  );
+
+  return (
+    <MultiFilterContext.Provider value={ctx}>
+      {children}
+    </MultiFilterContext.Provider>
+  );
+};
+
+export const useMultiFilterCheckboxes = (
+  dimensionIri: string,
+  value: string,
+  onChangeProp?: () => void
+) => {
+  const [state, dispatch] = useConfiguratorState();
+  const { allValues } = useMultiFilterContext();
+
+  const onChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      if (e.currentTarget.checked) {
+        dispatch({
+          type: "CHART_CONFIG_FILTER_ADD_MULTI",
+          value: {
+            dimensionIri,
+            values: [value],
+            allValues,
+          },
+        });
+      } else {
+        dispatch({
+          type: "CHART_CONFIG_FILTER_REMOVE_MULTI",
+          value: {
+            dimensionIri,
+            values: [value],
+            allValues,
+          },
+        });
+      }
+      onChangeProp?.();
+    },
+    [dispatch, dimensionIri, allValues, value, onChangeProp]
+  );
+
+  const isChecked =
+    state.state === "CONFIGURING_CHART" &&
+    isMultiFilterFieldChecked(state.chartConfig, dimensionIri, value);
+
+  return {
+    onChange,
+    checked: isChecked,
   };
 };
 
