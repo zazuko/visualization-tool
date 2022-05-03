@@ -4,6 +4,7 @@ import { MapboxLayer } from "@deck.gl/mapbox";
 import { Box, Button } from "@mui/material";
 import { geoArea } from "d3";
 import { orderBy } from "lodash";
+import { Layer as LayerType } from "mapbox-gl";
 import maplibregl, { LngLatLike, StyleSpecification } from "maplibre-gl";
 import React, {
   useMemo,
@@ -24,6 +25,7 @@ import { useMapTooltip } from "@/charts/map/map-tooltip";
 import { convertHexToRgbArray } from "@/charts/shared/colors";
 import { useChartState } from "@/charts/shared/use-chart-state";
 import { useInteraction } from "@/charts/shared/use-interaction";
+import { useMapStyle } from "@/configurator/map/map-chart-options";
 import { GeoFeature, GeoPoint } from "@/domain/data";
 import { Icon, IconName } from "@/icons";
 import { useLocale } from "@/src";
@@ -369,6 +371,11 @@ export const MapComponent = () => {
     symbolLayer,
   ]);
 
+  const { selectedStyle } = useMapStyle();
+  const [beforeIdArea, setBeforeIdArea] = useState<string | undefined>(
+    undefined
+  );
+
   return (
     <Box>
       <Box
@@ -387,8 +394,9 @@ export const MapComponent = () => {
       {featuresLoaded && (
         <>
           <ReactMap
+            key={selectedStyle.url || "default"}
             /* @ts-ignore */
-            mapStyle={mapStyle}
+            mapStyle={selectedStyle.url ? selectedStyle.url : mapStyle}
             mapLib={maplibregl}
             style={{
               left: 0,
@@ -399,13 +407,28 @@ export const MapComponent = () => {
             }}
             {...viewState}
             onMove={onViewStateChange}
+            onStyleData={(ev) => {
+              // @ts-ignore
+              const layers = ev.style._layers as LayerType[];
+              const waterLayer = Object.values(layers).find((l) => {
+                return l.id.includes("water");
+              });
+              const labelLayer = Object.values(layers).find((l) => {
+                return l.id.includes("label");
+              });
+              if (waterLayer) {
+                setBeforeIdArea(waterLayer.id);
+              } else {
+                setBeforeIdArea(labelLayer?.id);
+              }
+            }}
             ref={handleRefNode}
           >
             {areaLayer.show ? (
               <Layer
                 key={geoJsonLayer.id}
                 layer={geoJsonLayer}
-                beforeId={mapStyle === emptyStyle ? undefined : "water_polygon"}
+                beforeId={beforeIdArea}
               />
             ) : null}
             {symbolLayer.show ? (

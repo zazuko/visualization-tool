@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 import { ContentMDXProvider } from "@/components/content-mdx-provider";
+import { MapStyleProvider } from "@/configurator/map/map-chart-options";
 import { PUBLIC_URL } from "@/domain/env";
 import { GraphqlProvider } from "@/graphql/context";
 import { analyticsPageView } from "@/lib/googleAnalytics";
@@ -72,14 +73,16 @@ export default function App({ Component, pageProps }: AppProps) {
       <LocaleProvider value={locale}>
         <I18nProvider i18n={i18n}>
           <GraphqlProvider>
-            <ThemeProvider theme={federalTheme.theme}>
-              <CssBaseline />
-              <ContentMDXProvider>
-                <AsyncLocalizationProvider locale={locale}>
-                  <Component {...pageProps} />
-                </AsyncLocalizationProvider>
-              </ContentMDXProvider>
-            </ThemeProvider>
+            <MapStyleProvider>
+              <ThemeProvider theme={federalTheme.theme}>
+                <CssBaseline />
+                <ContentMDXProvider>
+                  <AsyncLocalizationProvider locale={locale}>
+                    <Component {...pageProps} />
+                  </AsyncLocalizationProvider>
+                </ContentMDXProvider>
+              </ThemeProvider>
+            </MapStyleProvider>
           </GraphqlProvider>
         </I18nProvider>
       </LocaleProvider>

@@ -1,7 +1,14 @@
-
 import { t, Trans } from "@lingui/macro";
-import { Box } from "@mui/material";
-import React, { memo, useMemo } from "react";
+import { Box, Typography } from "@mui/material";
+import { BoxProps } from "@mui/system";
+import Image from "next/image";
+import React, {
+  memo,
+  useMemo,
+  useContext,
+  createContext,
+  useState,
+} from "react";
 
 import Flex from "@/components/flex";
 import { FieldSetLegend } from "@/components/form";
@@ -19,6 +26,12 @@ import {
   ColorPickerField,
 } from "@/configurator/components/field";
 import { DimensionValuesMultiFilter } from "@/configurator/components/filters";
+import brightImg from "@/configurator/map/assets/bright.png";
+import defaultImg from "@/configurator/map/assets/default.png";
+import openstreetmapsImg from "@/configurator/map/assets/openstreetmaps.png";
+import outdoorImg from "@/configurator/map/assets/outdoor.png";
+import satelliteImg from "@/configurator/map/assets/satellite.png";
+import winterImg from "@/configurator/map/assets/winter.png";
 import {
   GeoFeature,
   getGeoDimensions,
@@ -40,7 +53,12 @@ export const MapColumnOptions = ({
 
   switch (activeField) {
     case "baseLayer":
-      return <BaseLayersSettings />;
+      return (
+        <>
+          <BaseLayersSettings />
+          <MapStyleSettings />
+        </>
+      );
     case "areaLayer":
       return (
         <AreaLayerSettings chartConfig={chartConfig} metaData={metaData} />
@@ -57,23 +75,179 @@ export const MapColumnOptions = ({
   }
 };
 
-export const BaseLayersSettings = memo(() => {
+const ThemeImg = ({
+  selected,
+  src,
+  name,
+  ...props
+}: { src: StaticImageData; selected: boolean; name: string } & Omit<
+  BoxProps,
+  "src"
+>) => {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-start",
+        flexDirection: "column",
+      }}
+      {...props}
+    >
+      <Box
+        sx={{
+          borderStyle: "inset",
+          boxSizing: "border-box",
+          borderWidth: selected ? "3px" : "1px",
+          display: "inline-flex",
+          borderRadius: 4,
+          overflow: "hidden",
+          borderColor: selected ? "#006699" : "gray",
+          transition: "transform 0.1s ease",
+          cursor: "pointer",
+          "&:hover": {
+            transform: "scale(1.025)",
+          },
+          "&:active": {
+            transform: "scale(0.95)",
+          },
+        }}
+      >
+        <Image alt="" width={88} height={88} src={src} />
+      </Box>
+      <Typography
+        sx={{ mt: 1 }}
+        variant="caption"
+        color="textSecondary"
+        textAlign="center"
+      >
+        {name}
+      </Typography>
+    </Box>
+  );
+};
+
+type MapStyle = {
+  id: string;
+  name: string;
+  url: string | undefined;
+  img: StaticImageData;
+};
+
+const mapTilerToken = process.env.MAP_TILER_TOKEN;
+export const mapStyles: MapStyle[] = [
+  {
+    id: "default",
+    name: "Default",
+    url: undefined,
+    img: defaultImg,
+  },
+  {
+    id: "outdoor",
+    name: "Outdoor",
+    url: `https://api.maptiler.com/maps/outdoor/style.json?key=${mapTilerToken}`,
+    img: outdoorImg,
+  },
+  {
+    id: "bright",
+    name: "Bright",
+    url: `https://api.maptiler.com/maps/bright/style.json?key=${mapTilerToken}`,
+    img: brightImg,
+  },
+  {
+    id: "openstreetmaps",
+    name: "OSM",
+    url: `https://api.maptiler.com/maps/openstreetmap/style.json?key=${mapTilerToken}`,
+    img: openstreetmapsImg,
+  },
+  {
+    id: "satellite",
+    name: "Satellite",
+    url: `https://api.maptiler.com/maps/hybrid/style.json?key=${mapTilerToken}`,
+    img: satelliteImg,
+  },
+  {
+    id: "winter",
+    name: "Winter",
+    url: `https://api.maptiler.com/maps/winter/style.json?key=${mapTilerToken}`,
+    img: winterImg,
+  },
+];
+
+const MapStyleContext = createContext({
+  selectedStyle: mapStyles[0],
+  setSelectedStyle: (style: MapStyle) => {},
+});
+
+export const useMapStyle = () => useContext(MapStyleContext);
+
+const MapStyleSettings = () => {
+  const { selectedStyle, setSelectedStyle } = useContext(MapStyleContext);
+
   return (
     <ControlSection>
       <SectionTitle iconName="mapMaptype">
-        <Trans id="chart.map.layers.base">Base Layer</Trans>
+        <Trans id="chart.map.layers.map-style">Map style</Trans>
       </SectionTitle>
       <ControlSectionContent side="right">
-        <ChartOptionCheckboxField
-          label={t({
-            id: "chart.map.layers.base.show",
-            message: "Show",
-          })}
-          field={null}
-          path="baseLayer.show"
-        />
+        <Typography variant="body2">Select a theme</Typography>
+        <Box
+          display="grid"
+          sx={{
+            gridTemplateColumns: "1fr 1fr 1fr",
+            gridTemplateRows: "1fr 1fr",
+            gap: "1rem",
+            mt: "1rem",
+          }}
+        >
+          {mapStyles.map((style) => (
+            <ThemeImg
+              key={style.id}
+              src={style.img}
+              name={style.name}
+              selected={selectedStyle.id === style.id}
+              onClick={() => setSelectedStyle(style)}
+            />
+          ))}
+        </Box>
       </ControlSectionContent>
     </ControlSection>
+  );
+};
+
+export const MapStyleProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
+  const [selectedStyle, setSelectedStyle] = useState(mapStyles[0]);
+  const ctx = useMemo(() => {
+    return { selectedStyle, setSelectedStyle };
+  }, [selectedStyle, setSelectedStyle]);
+  return (
+    <MapStyleContext.Provider value={ctx}>{children}</MapStyleContext.Provider>
+  );
+};
+
+export const BaseLayersSettings = memo(() => {
+  return (
+    <>
+      <ControlSection>
+        <SectionTitle iconName="mapMaptype">
+          <Trans id="chart.map.layers.base">Base Layer</Trans>
+        </SectionTitle>
+        <ControlSectionContent side="right">
+          <ChartOptionCheckboxField
+            label={t({
+              id: "chart.map.layers.base.show",
+              message: "Show",
+            })}
+            field={null}
+            path="baseLayer.show"
+          />
+        </ControlSectionContent>
+      </ControlSection>
+    </>
   );
 });
 
