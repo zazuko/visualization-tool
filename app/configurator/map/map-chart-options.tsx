@@ -134,7 +134,7 @@ type MapStyle = {
   img: StaticImageData;
 };
 
-const mapTilerToken = process.env.MAP_TILER_TOKEN;
+const mapTilerToken = "bjdC9JlMbYCu3Yx63rOB";
 export const mapStyles: MapStyle[] = [
   {
     id: "default",
