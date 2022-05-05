@@ -31,7 +31,7 @@ import defaultImg from "@/configurator/map/assets/default.png";
 import openstreetmapsImg from "@/configurator/map/assets/openstreetmaps.png";
 import outdoorImg from "@/configurator/map/assets/outdoor.png";
 import satelliteImg from "@/configurator/map/assets/satellite.png";
-import winterImg from "@/configurator/map/assets/winter.png";
+import swisstopogreyImg from "@/configurator/map/assets/swisstopogrey.png";
 import {
   GeoFeature,
   getGeoDimensions,
@@ -167,10 +167,11 @@ export const mapStyles: MapStyle[] = [
     img: satelliteImg,
   },
   {
-    id: "winter",
-    name: "Winter",
-    url: `https://api.maptiler.com/maps/winter/style.json?key=${mapTilerToken}`,
-    img: winterImg,
+    id: "swisstopogrey",
+    name: "SwissTopo Grey",
+    url: `https://api.maptiler.com/maps/ch-swisstopo-lbm-grey/style.json?key=${mapTilerToken}`,
+    img: swisstopogreyImg,
+  },
   },
 ];
 
