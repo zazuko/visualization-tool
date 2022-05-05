@@ -8,6 +8,7 @@ import React, {
   useContext,
   createContext,
   useState,
+  useCallback,
 } from "react";
 
 import Flex from "@/components/flex";
@@ -27,6 +28,7 @@ import {
 } from "@/configurator/components/field";
 import { DimensionValuesMultiFilter } from "@/configurator/components/filters";
 import brightImg from "@/configurator/map/assets/bright.png";
+import customImg from "@/configurator/map/assets/custom.png";
 import defaultImg from "@/configurator/map/assets/default.png";
 import openstreetmapsImg from "@/configurator/map/assets/openstreetmaps.png";
 import outdoorImg from "@/configurator/map/assets/outdoor.png";
@@ -135,6 +137,7 @@ type MapStyle = {
 };
 
 const mapTilerToken = "bjdC9JlMbYCu3Yx63rOB";
+const defaultCustomURL = `https://api.maptiler.com/maps/winter/style.json?key=${mapTilerToken}`;
 export const mapStyles: MapStyle[] = [
   {
     id: "default",
@@ -172,11 +175,30 @@ export const mapStyles: MapStyle[] = [
     url: `https://api.maptiler.com/maps/ch-swisstopo-lbm-grey/style.json?key=${mapTilerToken}`,
     img: swisstopogreyImg,
   },
+  {
+    id: "custom",
+    name: "Custom",
+    url:
+      typeof localStorage !== "undefined"
+        ? localStorage.getItem("custom-map-style-url") || defaultCustomURL
+        : defaultCustomURL,
+    img: customImg,
   },
 ];
 
+const getSavedStyle = () => {
+  if (
+    typeof localStorage !== "undefined" &&
+    localStorage.getItem("map-style-id")
+  ) {
+    const id = localStorage.getItem("map-style-id");
+    return mapStyles.find((x) => x.id === id) || mapStyles[0];
+  }
+  return mapStyles[0];
+};
+
 const MapStyleContext = createContext({
-  selectedStyle: mapStyles[0],
+  selectedStyle: getSavedStyle() || mapStyles[0],
   setSelectedStyle: (style: MapStyle) => {},
 });
 
@@ -184,7 +206,21 @@ export const useMapStyle = () => useContext(MapStyleContext);
 
 const MapStyleSettings = () => {
   const { selectedStyle, setSelectedStyle } = useContext(MapStyleContext);
+  const handleSelectStyle = (style: MapStyle) => {
+    setSelectedStyle(style);
+    localStorage.setItem("map-style-id", style.id);
+  };
 
+  const handleApplyCustomMapStyleUrl = useCallback(
+    (ev) => {
+      setSelectedStyle({
+        ...selectedStyle,
+        url: ev.target.value,
+      });
+      localStorage.setItem("custom-map-style-url", ev.target.value);
+    },
+    [selectedStyle, setSelectedStyle]
+  );
   return (
     <ControlSection>
       <SectionTitle iconName="mapMaptype">
@@ -207,10 +243,17 @@ const MapStyleSettings = () => {
               src={style.img}
               name={style.name}
               selected={selectedStyle.id === style.id}
-              onClick={() => setSelectedStyle(style)}
+              onClick={() => handleSelectStyle(style)}
             />
           ))}
         </Box>
+        {selectedStyle.id === "custom" ? (
+          <input
+            defaultValue={selectedStyle.url}
+            onBlur={handleApplyCustomMapStyleUrl}
+            style={{ width: "100%" }}
+          />
+        ) : null}
       </ControlSectionContent>
     </ControlSection>
   );
@@ -221,7 +264,7 @@ export const MapStyleProvider = ({
 }: {
   children: React.ReactNode;
 }) => {
-  const [selectedStyle, setSelectedStyle] = useState(mapStyles[0]);
+  const [selectedStyle, setSelectedStyle] = useState(getSavedStyle());
   const ctx = useMemo(() => {
     return { selectedStyle, setSelectedStyle };
   }, [selectedStyle, setSelectedStyle]);

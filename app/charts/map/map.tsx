@@ -5,7 +5,7 @@ import { Box, Button } from "@mui/material";
 import { geoArea } from "d3";
 import { orderBy } from "lodash";
 import { Layer as LayerType } from "mapbox-gl";
-import maplibregl, { LngLatLike, StyleSpecification } from "maplibre-gl";
+import maplibregl, { LngLatLike } from "maplibre-gl";
 import React, {
   useMemo,
   useEffect,
@@ -32,18 +32,6 @@ import { useLocale } from "@/src";
 
 import "maplibre-gl/dist/maplibre-gl.css";
 import Layer from "./layer";
-
-function getFirstLabelLayerId(style: StyleSpecification) {
-  const layers = style.layers;
-  // Find the index of the first symbol (i.e. label) layer in the map style
-  for (let i = 0; i < layers.length; i++) {
-    const layer = layers[i];
-    if (layer.type === "symbol" && layer["source-layer"]?.includes("label")) {
-      return layer.id;
-    }
-  }
-  return undefined;
-}
 
 type MinMaxZoomViewState = Pick<
   ViewState,
