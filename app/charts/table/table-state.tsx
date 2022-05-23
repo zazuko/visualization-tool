@@ -227,7 +227,7 @@ const useTableState = ({
    */
   const tableColumnsMeta = useMemo(
     () =>
-      Object.keys(fields).reduce((acc, iri, i) => {
+      Object.keys(fields).reduce((acc, iri) => {
         const columnMeta = fields[iri];
         const slugifiedIri = getSlugifiedIri(iri);
         const columnStyle = columnMeta.columnStyle;
@@ -318,16 +318,8 @@ const useTableState = ({
               )
             ),
           ];
-          const columnItemSizes = columnItems.map((item) => {
-            // @ts-ignore
-            const itemAsString = formatter(item);
-            return estimateTextWidth(`${itemAsString}`, 16) + 80;
-          });
           const width =
-            Math.max(max(columnItemSizes, (d) => d) || 150, 150) -
-            BAR_CELL_PADDING * 2;
-          // const hasNegativeValue =
-          //   (min(data, (d) => Math.abs(+d[iri])) || 0) < 0;
+            tableColumns[columnMeta.index].width - BAR_CELL_PADDING * 2;
           const domain = extent(columnItems, (d) => d) as [number, number];
           const widthScale = scaleLinear().domain(domain).range([0, width]);
 
@@ -354,7 +346,14 @@ const useTableState = ({
           };
         }
       }, {}),
-    [data, dimensions, fields, formatters, theme.palette.primary.main]
+    [
+      data,
+      dimensions,
+      fields,
+      tableColumns,
+      formatters,
+      theme.palette.primary.main,
+    ]
   );
 
   return {
