@@ -80,7 +80,7 @@
     "maplibre-gl": "^2.1.6",
     "material-ui-popup-state": "^2.0.0",
     "micro-cors": "^0.1.1",
-    "nanoid": "^3.1.12",
+    "nanoid": "^3.1.31",
     "nprogress": "^0.2.0",
     "pg": "^8.3.3",
     "pg-connection-string": "^2.3.0",
