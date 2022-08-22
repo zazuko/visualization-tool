@@ -1,9 +1,9 @@
-FROM node:12
+FROM docker.io/library/node:16
 
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
-# build with 
+# build with
 # docker build \
 #   --build-arg COMMIT=$(git rev-parse HEAD) \
 #   --build-arg VECTOR_TILE_URL=<url of the vector service>
